@@ -1,0 +1,22 @@
+[project]
+name = "gloryxr"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cdpkit>=1.2.3",
+    "fame3r>=1.0.3",
+    "pandas>=2.3.0",
+    "rdkit>=2025.3.3",
+    "scikit-learn>=1.7.0",
+    "tqdm>=4.67.1",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.29.4",
+    "jupyter>=1.1.1",
+    "jupyter-ruff>=0.3.0",
+    "ruff>=0.11.13",
+]
