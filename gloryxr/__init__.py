@@ -43,22 +43,3 @@ class Reactor:
             )
 
         return concrete_reactions
-
-
-def to_single_map(mol: Mol) -> list[Mol]:
-    mapno_to_idx = {
-        atom.GetAtomMapNum(): atom.GetIdx()
-        for atom in mol.GetAtoms()
-        if atom.GetAtomMapNum() != 0
-    }
-
-    results = []
-    for mapno in sorted(mapno_to_idx.keys()):
-        single_mol = Mol(mol)
-        for atom in single_mol.GetAtoms():
-            if mapno_to_idx[mapno] != atom.GetIdx():
-                atom.SetAtomMapNum(0)
-
-        results.append(single_mol)
-
-    return results
