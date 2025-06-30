@@ -19,19 +19,22 @@ rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 class Reactor:
     def __init__(self, strict_soms: bool = False) -> None:
         self.strict_soms = strict_soms
-        self.reactions: list[ChemicalReaction] = []
+        self.abstract_reactions: list[ChemicalReaction] = []
 
         with rules_data.joinpath("gloryx_reactionrules.csv").open() as f:
             for row in csv.DictReader(f):
                 reaction = ReactionFromSmarts(row["SMIRKS"])
                 reaction.SetProp("_Name", row["Reaction name"])
 
-                self.reactions.append(reaction)
+                self.abstract_reactions.append(reaction)
 
     def react_one(self, mol: Mol) -> list[ChemicalReaction]:
         concrete_reactions = list(
             itertools.chain.from_iterable(
-                (to_concrete_reactions(reaction, mol) for reaction in self.reactions)
+                (
+                    to_concrete_reactions(abstract_reaction, mol)
+                    for abstract_reaction in self.abstract_reactions
+                )
             )
         )
 
