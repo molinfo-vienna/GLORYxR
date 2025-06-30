@@ -9,7 +9,7 @@ dependencies = [
     "fame3r>=1.0.3",
     "pandas>=2.3.0",
     "rdkit>=2025.3.3",
-    "scikit-learn>=1.7.0",
+    "scikit-learn>=1.7.0", # should be through fame3r
     "tqdm>=4.67.1",
 ]
 
