@@ -1,8 +1,9 @@
 from collections.abc import Iterable
 
 import pandas as pd
-from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdchem import Mol
+from rdkit.Chem.rdChemReactions import ChemicalReaction
+from rdkit.Chem.rdmolfiles import MolToSmiles
 
 
 def reactions_to_table(reactions: Iterable[ChemicalReaction]) -> pd.DataFrame:
@@ -36,4 +37,4 @@ def extract_similes_for_soms(mol: Mol) -> list[Mol]:
 
         results.append(single_mol)
 
-    return results
+    return [MolToSmiles(mol) for mol in results]
