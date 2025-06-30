@@ -8,7 +8,6 @@ from CDPL.Chem import AtomProperty, parseSMILES  # type:ignore
 from fame3r.compute_descriptors import DescriptorGenerator, MoleculeProcessor
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils._set_output import _SetOutputMixin
-from sklearn.utils.estimator_checks import check_estimator
 from sklearn.utils.validation import check_array, check_is_fitted
 
 

@@ -24,7 +24,7 @@ def to_concrete_reactions(
             block = BlockLogs()
             SanitizeMol(product)
             del block
-        except:
+        except Exception:
             continue
 
         if (inchi := MolToInchi(product)) not in known_products:
