@@ -67,6 +67,8 @@ def _get_closest_idxs(
     filter_idx = np.asarray(filter_idx_, dtype=int)
 
     distances = GetDistanceMatrix(mol)[:, reference_idx].min(axis=1)[filter_idx]
-    closest_indices = filter_idx[np.argwhere(distances == distances.min()).flatten()]
+    closest_indices = filter_idx[
+        np.argwhere(distances == distances.min(initial=np.inf)).flatten()
+    ]
 
     return [int(idx) for idx in closest_indices]
