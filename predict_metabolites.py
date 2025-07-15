@@ -6,10 +6,8 @@ Metabolite prediction script using GLORYxR.
 
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
-
 from sklearn.ensemble import RandomForestClassifier
 
 from gloryxr.predictor import MetabolitePredictor
@@ -17,81 +15,83 @@ from gloryxr.utils import (load_models, load_reaction_subsets, load_sdf_data,
                            print_summary, save_failed_molecules, save_predictions, standardize_molecules)
 
 
-def predict_metabolites(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_prediction_components() -> tuple[dict[str, RandomForestClassifier], dict[str, str]]:
     """
-    Apply metabolite prediction pipeline to molecules in the DataFrame.
-
-    Args:
-        df: DataFrame containing molecules (must have 'ROMol' column)
-
+    Load models and reaction subsets.
+    
     Returns:
-        Tuple of (predictions_df, failed_molecules_list)
+        Tuple of (models, reaction_subsets)
+        
+    Raises:
+        RuntimeError: If components cannot be loaded
     """
-    print("Starting metabolite prediction pipeline...")
-
-    # Load models reaction subsets
     try:
-        models: dict[str, RandomForestClassifier] = load_models()
+        models = load_models()
+        reaction_subsets = load_reaction_subsets()
+        return models, reaction_subsets
     except Exception as e:
-        print(f"Error loading models: {e}")
-        return pd.DataFrame(), pd.DataFrame()
+        raise RuntimeError(f"Failed to load prediction components: {e}")
+
+
+def run_prediction_pipeline(input_sdf: str, output_folder: str) -> int:
+    """
+    Run the complete metabolite prediction pipeline.
+    
+    Args:
+        input_sdf: Path to input SDF file
+        output_folder: Path to output folder
+        
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
     try:
-        reaction_subsets: dict[str, str] = load_reaction_subsets()
+        print("Loading data...")
+        df = load_sdf_data(input_sdf)
+        
+        print("Standardizing molecules...")
+        df, standardization_failed = standardize_molecules(df)
+        
+        if len(df) == 0:
+            print("No molecules passed standardization. Exiting.")
+            return 1
+        
+        print("Loading prediction models...")
+        models, reaction_subsets = load_prediction_components()
+        
+        print("Initializing predictor...")
+        predictor = MetabolitePredictor(models, reaction_subsets, strict_soms=False)
+        
+        print("Running predictions...")
+        predictions, prediction_failed = predictor.predict_molecules(df)
+        
+        # Combine failed molecules
+        failed_molecules = pd.concat([standardization_failed, prediction_failed], ignore_index=True) if not standardization_failed.empty or not prediction_failed.empty else pd.DataFrame()
+        
+        print("Saving results...")
+        output_path = Path(output_folder)
+        output_path.mkdir(parents=True, exist_ok=True)
+        save_predictions(predictions, output_path)
+        save_failed_molecules(failed_molecules, output_path)
+        
+        # Print summary
+        print_summary(df, predictions, failed_molecules)
+        
+        print("Metabolite prediction completed successfully!")
+        return 0
+        
     except Exception as e:
-        print(f"Error loading reaction subsets: {e}")
-        return pd.DataFrame(), pd.DataFrame()
-
-    # Initialize predictor
-    try:
-        predictor: MetabolitePredictor = MetabolitePredictor(models, reaction_subsets, strict_soms=False)
-    except Exception as e:
-        print(f"Error initializing predictor: {e}")
-        return pd.DataFrame(), pd.DataFrame()
-
-    # Run predictions
-    predictions, failed_molecules = predictor.predict_molecules(df)
-
-    return predictions, failed_molecules
+        print(f"Error: {e}")
+        return 1
 
 
 def main() -> int:
     """Main function to run metabolite prediction pipeline."""
-    parser: ArgumentParser = ArgumentParser(description="Predict metabolites using GLORYxR")
+    parser = ArgumentParser(description="Predict metabolites using GLORYxR")
     parser.add_argument("input_sdf", help="Path to input SDF file")
     parser.add_argument("output_folder", help="Path to output folder")
 
     args: Namespace = parser.parse_args()
-
-    try:
-        # Load data
-        df: pd.DataFrame = load_sdf_data(sdf_path=args.input_sdf)
-
-        # Standardize molecules
-        df, standardization_failed = standardize_molecules(df)
-
-        # Run predictions
-        predictions, prediction_failed = predict_metabolites(df)
-
-        # Create output directory
-        output_path: Path = Path(args.output_folder)
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        # Combine all failed molecules
-        failed_molecules = pd.concat([standardization_failed, prediction_failed], ignore_index=True) if not standardization_failed.empty or not prediction_failed.empty else pd.DataFrame()
-
-        # Save results
-        save_predictions(predictions, output_path)
-        save_failed_molecules(failed_molecules, output_path)
-
-        # Print summary
-        print_summary(df, predictions, failed_molecules)
-
-        print("Metabolite prediction completed successfully!")
-        return 0
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return 1
+    return run_prediction_pipeline(args.input_sdf, args.output_folder)
 
 
 if __name__ == "__main__":

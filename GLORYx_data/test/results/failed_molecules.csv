@@ -1,22 +1,4 @@
 molecule_id,parent_name,failure_reason,parent_smiles
-17,Atorvastatin,"reaction_generation_error: Range Error
-	idx
-	Violation occurred on line 209 in file Code/GraphMol/ROMol.cpp
-	Failed Expression: 75 < 41
-	RDKIT: 2025.03.3
-	BOOST: 1_85
-",CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O
-29,Apremilast,"reaction_generation_error: Range Error
-	idx
-	Violation occurred on line 209 in file Code/GraphMol/ROMol.cpp
-	Failed Expression: 38 < 32
-	RDKIT: 2025.03.3
-	BOOST: 1_85
-",CCOc1cc([C@@H](CS(C)(=O)=O)N2C(=O)c3cccc(NC(C)=O)c3C2=O)ccc1OC
-34,Rosuvastatin,"reaction_generation_error: Range Error
-	idx
-	Violation occurred on line 209 in file Code/GraphMol/ROMol.cpp
-	Failed Expression: 54 < 33
-	RDKIT: 2025.03.3
-	BOOST: 1_85
-",CC(C)c1nc(N(C)S(C)(=O)=O)nc(-c2ccc(F)cc2)c1/C=C/[C@@H](O)C[C@@H](O)CC(=O)O
+17,Atorvastatin,invalid_mol_object,
+29,Apremilast,invalid_mol_object,
+34,Rosuvastatin,invalid_mol_object,
