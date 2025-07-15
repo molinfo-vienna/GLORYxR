@@ -1,5 +1,9 @@
 # pyright: basic
 
+"""
+Functions to annotate the educt molecule with SOM indices.
+"""
+
 import numpy as np
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdmolops import GetDistanceMatrix
@@ -7,7 +11,10 @@ from rdkit.Chem.rdmolops import GetDistanceMatrix
 
 def annotate_educt_and_product_inplace(
     educt: Mol, product: Mol, strict_soms: bool = False
-):
+) -> None:
+    """
+    Annotate the educt and product molecules with the SOM indices.
+    """
     product_idxs = (
         _get_strict_som_indices(educt, product)
         if strict_soms
@@ -21,27 +28,33 @@ def annotate_educt_and_product_inplace(
         educt.GetAtomWithIdx(atom.GetIntProp("react_atom_idx")).SetAtomMapNum(mapno)
 
 
-def _get_loose_som_indices(reacted_mol: Mol) -> list[int]:
+def _get_loose_som_indices(product: Mol) -> list[int]:
+    """
+    Get loose SOM indices for the product molecule.
+    """
     return [
-        atom.GetIdx() for atom in reacted_mol.GetAtoms() if atom.HasProp("old_mapno")
+        atom.GetIdx() for atom in product.GetAtoms() if atom.HasProp("old_mapno")
     ]
 
 
-def _get_strict_som_indices(educt_mol: Mol, reacted_mol: Mol) -> list[int]:
+def _get_strict_som_indices(educt: Mol, product: Mol) -> list[int]:
+    """
+    Get strict SOM indices for the product molecule.
+    """
     involved_idx_mappings = {
         atom.GetIntProp("react_atom_idx"): atom.GetIdx()
-        for atom in reacted_mol.GetAtoms()
+        for atom in product.GetAtoms()
         if atom.HasProp("react_atom_idx") and atom.GetAtomicNum() != 1
     }
 
     added_by_reaction_idx = [
         atom.GetIdx()
-        for atom in reacted_mol.GetAtoms()
+        for atom in product.GetAtoms()
         if not atom.HasProp("react_atom_idx")
     ]
     removed_by_reaction_idx = [
         atom.GetIdx()
-        for atom in educt_mol.GetAtoms()
+        for atom in educt.GetAtoms()
         if atom.GetIdx() not in involved_idx_mappings
     ]
 
@@ -49,12 +62,12 @@ def _get_strict_som_indices(educt_mol: Mol, reacted_mol: Mol) -> list[int]:
         return [
             involved_idx_mappings[idx]
             for idx in _get_closest_idxs(
-                educt_mol, removed_by_reaction_idx, list(involved_idx_mappings.keys())
+                educt, removed_by_reaction_idx, list(involved_idx_mappings.keys())
             )
         ]
     elif len(added_by_reaction_idx) != 0:
         return _get_closest_idxs(
-            reacted_mol, added_by_reaction_idx, list(involved_idx_mappings.values())
+            product, added_by_reaction_idx, list(involved_idx_mappings.values())
         )
     else:
         return []

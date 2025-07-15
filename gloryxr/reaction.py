@@ -1,5 +1,8 @@
 # pyright: basic
 
+"""
+Functions to convert abstract reactions to concrete reactions.
+"""
 
 import itertools
 
