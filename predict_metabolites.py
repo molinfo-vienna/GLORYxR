@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from gloryxr.predictor import MetabolitePredictor
 from gloryxr.utils import (load_models, load_reaction_subsets, load_sdf_data, 
-                           print_summary, save_failed_molecules, save_predictions)
+                           print_summary, save_failed_molecules, save_predictions, standardize_molecules)
 
 
 def predict_metabolites(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -66,12 +66,18 @@ def main() -> int:
         # Load data
         df: pd.DataFrame = load_sdf_data(sdf_path=args.input_sdf)
 
+        # Standardize molecules
+        df, standardization_failed = standardize_molecules(df)
+
         # Run predictions
-        predictions, failed_molecules = predict_metabolites(df)
+        predictions, prediction_failed = predict_metabolites(df)
 
         # Create output directory
         output_path: Path = Path(args.output_folder)
         output_path.mkdir(parents=True, exist_ok=True)
+
+        # Combine all failed molecules
+        failed_molecules = pd.concat([standardization_failed, prediction_failed], ignore_index=True) if not standardization_failed.empty or not prediction_failed.empty else pd.DataFrame()
 
         # Save results
         save_predictions(predictions, output_path)

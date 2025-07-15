@@ -9,6 +9,7 @@ import joblib
 from pathlib import Path
 
 import pandas as pd
+from molvs import Standardizer
 from rdkit.Chem.PandasTools import LoadSDF
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
@@ -271,3 +272,83 @@ def create_failed_molecule_record(
         "failure_reason": failure_reason,
         "parent_smiles": parent_smiles,
     }])
+
+def standardize_molecules(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Standardize molecules in the DataFrame and filter out problematic molecules.
+    
+    This function performs the following operations:
+    1. Standardizes molecules using MolVS
+    2. Removes salts and keeps only the largest fragment
+    3. Filters out molecules with multiple fragments
+    4. Filters out molecules containing atoms other than H, C, N, O, P, S, F, Cl, Br, I
+    
+    Args:
+        df: DataFrame containing molecules (must have 'ROMol' column)
+        
+    Returns:
+        Tuple of (standardized_df, failed_molecules_df)
+    """
+    from rdkit.Chem.rdmolops import GetMolFrags, RemoveHs, SanitizeMol
+    from rdkit.Chem.rdmolfiles import MolToSmiles
+    
+    # Initialize lists to track failed molecules
+    failed_molecules = []
+    
+    # 1. Standardize molecules with MolVS
+    print("Standardizing molecules with MolVS...")
+    standardizer = Standardizer()
+    
+    # Process each molecule
+    for idx, row in df.iterrows():
+        mol = row["ROMol"]
+        molecule_id = int(idx) if isinstance(idx, (int, float, str)) else 0
+        parent_name = str(row.get("ID", f"molecule_{idx}"))
+        
+        try:
+            # Standardize the molecule
+            mol = standardizer.standardize(mol)
+            
+            # 2. Remove salts - get the largest fragment
+            fragments = GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+            if len(fragments) > 1:
+                # Keep only the largest fragment
+                largest_fragment = max(fragments, key=lambda x: x.GetNumAtoms())
+                mol = largest_fragment
+            
+            # 3. Check for allowed atoms only (H, C, N, O, P, S, F, Cl, Br, I)
+            allowed_atoms = {1, 6, 7, 8, 15, 16, 9, 17, 35, 53}
+            for atom in mol.GetAtoms():
+                if atom.GetAtomicNum() not in allowed_atoms:
+                    failed_molecules.append(create_failed_molecule_record(
+                        molecule_id=molecule_id,
+                        parent_name=parent_name,
+                        failure_reason=f"disallowed_atom_detected: {atom.GetSymbol()}",
+                        parent_smiles=MolToSmiles(mol) if mol is not None else None
+                    ))
+                    break
+            else:
+                # If we get here, all atoms are allowed - update the molecule
+                df.at[idx, "ROMol"] = mol
+                continue
+                
+        except Exception as e:
+            # Handle any other standardization errors
+            failed_molecules.append(create_failed_molecule_record(
+                molecule_id=molecule_id,
+                parent_name=parent_name,
+                failure_reason=f"standardization_error: {str(e)}",
+                parent_smiles=MolToSmiles(mol) if mol is not None else None
+            ))
+            continue
+    
+    # Remove failed molecules from the DataFrame
+    failed_indices = [record.iloc[0]["molecule_id"] for record in failed_molecules]
+    df_standardized = df.drop(failed_indices).reset_index(drop=True)
+    
+    # Combine all failed molecule records
+    failed_df = pd.concat(failed_molecules, ignore_index=True) if failed_molecules else pd.DataFrame()
+    
+    print(f"Standardization complete: {len(df_standardized)} molecules passed, {len(failed_df)} failed")
+    
+    return df_standardized, failed_df

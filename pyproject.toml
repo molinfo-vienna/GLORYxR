@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "cdpkit>=1.2.3",
     "fame3r>=1.0.3",
+    "molvs>=0.1.1", 
     "pandas>=2.3.0",
     "rdkit>=2025.3.3",
     "scikit-learn>=1.7.0",

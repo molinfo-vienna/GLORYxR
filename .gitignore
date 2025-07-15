@@ -20,3 +20,7 @@ MetaQSAR_data/
 
 # Trained FAME3R models
 models/
+
+# Debugging
+debug/
+sandbox.sdf

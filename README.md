@@ -24,6 +24,17 @@ python predict_metabolites.py GLORYx_data/test/gloryx_test_dataset.sdf GLORYx_da
 The input SDF file should contain:
 - Valid molecular structures in SDF format
 
+## Molecular Standardization
+
+The pipeline automatically standardizes input molecules using the following steps:
+
+1. **MolVS Standardization**: Applies standard molecular standardization rules
+2. **Salt Removal**: Removes salts and keeps only the largest molecular fragment
+3. **Fragment Filtering**: Rejects molecules with multiple fragments after salt removal
+4. **Atom Filtering**: Only allows atoms H, C, N, O, P, S, F, Cl, Br, and I
+
+Molecules that fail standardization are recorded in the failed molecules CSV with specific failure reasons.
+
 ## Output
 
 The script generates:
@@ -54,6 +65,8 @@ The `failed_molecules.csv` file contains:
 
 Common failure reasons:
 - `invalid_mol_object`: Molecule could not be parsed from SDF
+- `disallowed_atom_detected`: Molecule contains atoms other than H, C, N, O, P, S, F, Cl, Br, I
+- `standardization_error`: Error during molecular standardization
 - `no_reactions_found`: No metabolic reactions were identified
 - `no_soms_extracted`: No sites of metabolism were found
 - `reaction_generation_error`: Error during reaction generation
@@ -67,13 +80,10 @@ The codebase is organized into modular components:
 ### `gloryxr/predictor.py`
 Main class for metabolite prediction using GLORYxR.
 
-### `gloryxr/reaction.py`
-Functions to convert abstract reactions to concrete reactions.
-
 ### `gloryxr/reactor.py`
-Core chemical reaction processing engine.
+Core chemical reaction processing engine that handles both abstract reaction management and concrete reaction generation.
 
-### `gloryxr/should_be_in_fane3r.py`
+### `gloryxr/should_be_in_fame3r.py`
 Functonalities that will be put in FAME3R at the end.
 
 ### `gloryxr/som.py`
