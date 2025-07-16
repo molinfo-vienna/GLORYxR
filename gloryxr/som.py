@@ -34,7 +34,9 @@ def _get_loose_som_indices(product: Mol) -> list[int]:
     Get loose SOM indices for the product molecule.
     """
     return [
-        atom.GetIdx() for atom in product.GetAtoms() if atom.HasProp("old_mapno")
+        atom.GetIdx() 
+        for atom in product.GetAtoms() 
+        if atom.HasProp("old_mapno") and atom.GetAtomicNum() != 1
     ]
 
 
