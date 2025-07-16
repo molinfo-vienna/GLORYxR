@@ -1,4 +1,0 @@
-molecule_id,parent_name,failure_reason,parent_smiles
-17,Atorvastatin,invalid_mol_object,
-29,Apremilast,invalid_mol_object,
-34,Rosuvastatin,invalid_mol_object,
