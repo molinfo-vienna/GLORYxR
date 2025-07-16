@@ -28,8 +28,8 @@ class MetabolitePredictor:
 
         Args:
             models: Dictionary of loaded models
-            reaction_subsets: Dictionary mapping reaction names to subsets
-            strict_soms: Whether to use strict SOM validation
+            reaction_subsets: Dictionary mapping reaction names to rule subsets
+            strict_soms: Whether to use strict SOMs
         """
         self.models = models
         self.reaction_subsets = reaction_subsets
@@ -55,22 +55,22 @@ class MetabolitePredictor:
         predictions_list = []
         failed_list = []
         
-        for i, (_, row) in enumerate(df.iterrows()):
+        for molecule_id, (_, row) in enumerate(df.iterrows()):
             mol = row["ROMol"]
-            parent_name = str(row.get("ID", f"molecule_{i}"))
+            parent_name = str(row.get(key="ID", default=f"molecule_{molecule_id}"))
             
-            result = self._process_molecule(mol, i, parent_name)
+            result = self._process_molecule(mol, parent_name)
             
             if result is None:
                 failed_list.append(create_failed_molecule_record(
-                    molecule_id=i,
-                    parent_name=parent_name,
-                    failure_reason="invalid_mol_object"
+                    molecule_id,
+                    parent_name,
+                    failure_reason="processing_error"
                 ))
             elif isinstance(result, pd.DataFrame) and len(result) == 0:
                 failed_list.append(create_failed_molecule_record(
-                    molecule_id=i,
-                    parent_name=parent_name,
+                    molecule_id,
+                    parent_name,
                     failure_reason="no_predictions_generated",
                     parent_smiles=MolToSmiles(mol) if mol is not None else None
                 ))
@@ -78,19 +78,18 @@ class MetabolitePredictor:
                 predictions_list.append(result)
         
         # Combine results
-        predictions_df = format_predictions(pd.concat(predictions_list, ignore_index=True)) if predictions_list else pd.DataFrame()
+        predictions_df = format_predictions(predictions=pd.concat(predictions_list, ignore_index=True)) if predictions_list else pd.DataFrame()
         failed_df = pd.concat(failed_list, ignore_index=True) if failed_list else pd.DataFrame()
         
         return predictions_df, failed_df
 
-    def _process_molecule(self, mol, molecule_id: int, parent_name: str) -> pd.DataFrame | None:
+    def _process_molecule(self, mol, parent_name: str) -> pd.DataFrame | None:
         """
         Process a single molecule and return predictions or None if failed.
         
         Args:
             mol: RDKit molecule object
-            molecule_id: Index of the molecule
-            parent_name: Name/ID of the parent molecule
+            parent_name: Name/ID of the molecule
             
         Returns:
             DataFrame with predictions or None if failed

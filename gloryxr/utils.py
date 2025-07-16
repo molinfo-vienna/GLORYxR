@@ -130,7 +130,8 @@ def load_sdf_data(sdf_path: str) -> pd.DataFrame:
         DataFrame containing the molecules and their properties
 
     Raises:
-        ValueError: If SDF file doesn't contain valid molecules
+        ValueError: If SDF file is empty
+        KeyError: If SDF file does not contain 'ROMol' column
     """
     sdf_file: Path = Path(sdf_path)
     if not sdf_file.exists():
@@ -144,7 +145,7 @@ def load_sdf_data(sdf_path: str) -> pd.DataFrame:
         raise ValueError("Input DataFrame is empty. Check that the SD file contains valid molecules.")
 
     if "ROMol" not in df.columns:
-        raise ValueError("DataFrame does not contain 'ROMol' column. Check that the SD file contains valid molecules.")
+        raise KeyError("DataFrame does not contain 'ROMol' column. Check that the SD file contains valid molecules.")
 
     print(f"Loaded {len(df)} molecules from SDF file")
     return df
@@ -279,9 +280,8 @@ def standardize_molecules(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
     
     This function performs the following operations:
     1. Standardizes molecules using MolVS
-    2. Removes salts and keeps only the largest fragment
-    3. Filters out molecules with multiple fragments
-    4. Filters out molecules containing atoms other than H, C, N, O, P, S, F, Cl, Br, I
+    2. Removes salts (keeps only the largest fragment) with RDKit
+    3. Filters out molecules containing atoms other than H, C, N, O, P, S, F, Cl, Br, I
     
     Args:
         df: DataFrame containing molecules (must have 'ROMol' column)
@@ -328,12 +328,10 @@ def standardize_molecules(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
                     ))
                     break
             else:
-                # If we get here, all atoms are allowed - update the molecule
                 df.at[idx, "ROMol"] = mol
                 continue
                 
         except Exception as e:
-            # Handle any other standardization errors
             failed_molecules.append(create_failed_molecule_record(
                 molecule_id=molecule_id,
                 parent_name=parent_name,

@@ -1,7 +1,7 @@
 #pyright: basic
 
 """
-Metabolite prediction script using GLORYxR.
+Metabolite prediction using GLORYxR.
 """
 
 from argparse import ArgumentParser, Namespace
@@ -59,12 +59,12 @@ def run_prediction_pipeline(input_sdf: str, output_folder: str) -> int:
         models, reaction_subsets = load_prediction_components()
         
         print("Initializing predictor...")
-        predictor = MetabolitePredictor(models, reaction_subsets, strict_soms=False)
+        predictor = MetabolitePredictor(models, reaction_subsets, strict_soms=True)
         
         print("Running predictions...")
         predictions, prediction_failed = predictor.predict_molecules(df)
         
-        # Combine failed molecules
+        # Combine failed molecules from standardization and prediction procedures
         failed_molecules = pd.concat([standardization_failed, prediction_failed], ignore_index=True) if not standardization_failed.empty or not prediction_failed.empty else pd.DataFrame()
         
         print("Saving results...")
