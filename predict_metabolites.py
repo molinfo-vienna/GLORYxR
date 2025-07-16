@@ -33,7 +33,7 @@ def load_prediction_components() -> tuple[dict[str, RandomForestClassifier], dic
         raise RuntimeError(f"Failed to load prediction components: {e}")
 
 
-def run_prediction_pipeline(input_sdf: str, output_folder: str) -> int:
+def run_prediction_pipeline(input_sdf: str, output_folder: str, strict_soms: bool) -> int:
     """
     Run the complete metabolite prediction pipeline.
     
@@ -59,7 +59,7 @@ def run_prediction_pipeline(input_sdf: str, output_folder: str) -> int:
         models, reaction_subsets = load_prediction_components()
         
         print("Initializing predictor...")
-        predictor = MetabolitePredictor(models, reaction_subsets, strict_soms=True)
+        predictor = MetabolitePredictor(models, reaction_subsets, strict_soms)
         
         print("Running predictions...")
         predictions, prediction_failed = predictor.predict_molecules(df)
@@ -87,11 +87,12 @@ def run_prediction_pipeline(input_sdf: str, output_folder: str) -> int:
 def main() -> int:
     """Main function to run metabolite prediction pipeline."""
     parser = ArgumentParser(description="Predict metabolites using GLORYxR")
-    parser.add_argument("input_sdf", help="Path to input SDF file")
-    parser.add_argument("output_folder", help="Path to output folder")
+    parser.add_argument("-i", "--input_sdf", help="Path to input SDF file", type=str, required=True)
+    parser.add_argument("-o", "--output_folder", help="Path to output folder", type=str, required=True)
+    parser.add_argument("--strict_soms", help="Whether to use strict SOMs", action="store_true", default=False)
 
     args: Namespace = parser.parse_args()
-    return run_prediction_pipeline(args.input_sdf, args.output_folder)
+    return run_prediction_pipeline(args.input_sdf, args.output_folder, args.strict_soms)
 
 
 if __name__ == "__main__":
