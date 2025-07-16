@@ -5,7 +5,7 @@ Main class for metabolite prediction using GLORYxR.
 """
 
 import pandas as pd
-from rdkit.Chem.rdmolfiles import MolToSmiles
+from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from sklearn.ensemble import RandomForestClassifier
 
@@ -78,9 +78,20 @@ class MetabolitePredictor:
                 predictions_list.append(result)
         
         # Combine results
-        predictions_df = format_predictions(predictions=pd.concat(predictions_list, ignore_index=True)) if predictions_list else pd.DataFrame()
+        predictions_df =pd.concat(predictions_list, ignore_index=True) if predictions_list else pd.DataFrame()
         failed_df = pd.concat(failed_list, ignore_index=True) if failed_list else pd.DataFrame()
-        
+
+        # Filter out duplicated predictions
+        predictions_df = predictions_df.sort_values(by="Score", ascending=False).groupby(by=["SOM", "metabolite_smiles"], as_index=False).first().reset_index(drop=True)
+
+        # Filter out predictions with less than 3 heavy atoms
+        mask = predictions_df["metabolite_smiles"].apply(lambda x: MolFromSmiles(x).GetNumHeavyAtoms() >= 3)
+        predictions_df = predictions_df[mask]
+
+        # Format predictions
+        if not predictions_df.empty:
+            predictions_df = format_predictions(predictions=predictions_df)
+
         return predictions_df, failed_df
 
     def _process_molecule(self, mol, parent_name: str) -> pd.DataFrame | None:
