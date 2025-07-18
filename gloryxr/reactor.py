@@ -1,4 +1,4 @@
-#pyright: basic
+# pyright: basic
 
 """
 Core chemical reaction processing engine for GLORYxR.
@@ -18,18 +18,17 @@ from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
 
-
 rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 
 
 class Reactor:
     """
     Core chemical reaction processing engine for GLORYxR.
-    
+
     This class manages abstract reactions and provides methods to generate
     concrete reactions from input molecules.
     """
-    
+
     def __init__(self, strict_soms: bool = False) -> None:
         """
         Initialize the Reactor with reaction rules.
@@ -39,7 +38,7 @@ class Reactor:
         """
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = []
-        
+
         # Load reaction rules from CSV file
         self._load_reaction_rules()
 
@@ -59,7 +58,7 @@ class Reactor:
     ) -> list[ChemicalReaction]:
         """
         Convert an abstract reaction to concrete reactions for a given educt.
-        
+
         This method applies the abstract reaction to the educt molecule and
         generates all possible concrete reactions, filtering out duplicates
         and invalid products.
@@ -100,7 +99,7 @@ class Reactor:
             concrete_reaction = ChemicalReaction()
             concrete_reaction.AddReactantTemplate(RemoveHs(educt_))
             concrete_reaction.AddProductTemplate(RemoveHs(product_))
-            
+
             # Copy reaction name if available
             if reaction.HasProp("_Name"):
                 concrete_reaction.SetProp("_Name", reaction.GetProp("_Name"))
@@ -137,4 +136,3 @@ class Reactor:
             )
 
         return concrete_reactions
-

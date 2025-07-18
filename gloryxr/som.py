@@ -8,9 +8,7 @@ import numpy as np
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdmolops import GetDistanceMatrix
 
-# TODO: the issue with the statins is that the product and educt have no hydrogens,
-# but the react_atom_idx are indexed with hydrogens. How to handle this?
-# For strict SOMs is does not appear to be a problem, but for loose SOMs it is.
+
 def annotate_educt_and_product_inplace(
     educt: Mol, product: Mol, strict_soms: bool = False
 ) -> None:
@@ -29,13 +27,14 @@ def annotate_educt_and_product_inplace(
         atom.SetAtomMapNum(mapno)
         educt.GetAtomWithIdx(atom.GetIntProp("react_atom_idx")).SetAtomMapNum(mapno)
 
+
 def _get_loose_som_indices(product: Mol) -> list[int]:
     """
     Get loose SOM indices for the product molecule.
     """
     return [
-        atom.GetIdx() 
-        for atom in product.GetAtoms() 
+        atom.GetIdx()
+        for atom in product.GetAtoms()
         if atom.HasProp("old_mapno") and atom.GetAtomicNum() != 1
     ]
 

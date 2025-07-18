@@ -1,20 +1,33 @@
-#pyright: basic
+# pyright: basic
 
 """
 Utility functions for GLORYxR metabolite prediction.
 """
 
 import csv
-import joblib
 from pathlib import Path
 
+import joblib
 import pandas as pd
 from molvs import Standardizer
 from rdkit.Chem.PandasTools import LoadSDF
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
-from rdkit.Chem.rdmolfiles import MolToSmiles
+from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
+from rdkit.Chem.rdmolops import GetMolFrags
 from sklearn.ensemble import RandomForestClassifier
+
+
+def clean_smiles(smiles: str) -> str:
+    """
+    Clean up SMILES string.
+    """
+    mol: Mol = MolFromSmiles(smiles)
+    if mol is None:
+        raise RuntimeError(f"Cannot parse SMILES: {smiles}")
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(0)
+    return MolToSmiles(mol, canonical=True, ignoreAtomMapNumbers=True)
 
 
 def reactions_to_table(reactions: list[ChemicalReaction]) -> pd.DataFrame:
@@ -142,10 +155,14 @@ def load_sdf_data(sdf_path: str) -> pd.DataFrame:
     df: pd.DataFrame = LoadSDF(filename=sdf_path, removeHs=False, sanitize=True)
 
     if df is df.empty:
-        raise ValueError("Input DataFrame is empty. Check that the SD file contains valid molecules.")
+        raise ValueError(
+            "Input DataFrame is empty. Check that the SD file contains valid molecules."
+        )
 
     if "ROMol" not in df.columns:
-        raise KeyError("DataFrame does not contain 'ROMol' column. Check that the SD file contains valid molecules.")
+        raise KeyError(
+            "DataFrame does not contain 'ROMol' column. Check that the SD file contains valid molecules."
+        )
 
     print(f"Loaded {len(df)} molecules from SDF file")
     return df
@@ -215,40 +232,6 @@ def print_summary(
             )
 
 
-def format_predictions(predictions: pd.DataFrame) -> pd.DataFrame:
-    """
-    Format predictions DataFrame with proper column names and order.
-
-    Args:
-        predictions: Raw predictions DataFrame
-
-    Returns:
-        Formatted predictions DataFrame
-    """
-    # Rename columns to lowercase
-    column_mapping: dict[str, str] = {
-        "Subset": "rule_subset",
-        "Reaction": "reaction",
-        "Score": "score",
-        "SOM": "som",
-    }
-    predictions.rename(columns=column_mapping, inplace=True)
-
-    # Sort columns in the requested order
-    column_order: list[str] = [
-        "parent_name",
-        "parent_smiles",
-        "metabolite_smiles",
-        "reaction",
-        "rule_subset",
-        "som",
-        "score",
-    ]
-    new_columns: list[str] = [col for col in column_order if col in predictions.columns]
-    result: pd.DataFrame = predictions.loc[:, new_columns].copy()
-    return result
-
-
 def create_failed_molecule_record(
     molecule_id: int,
     parent_name: str,
@@ -267,86 +250,119 @@ def create_failed_molecule_record(
     Returns:
         DataFrame containing failed molecule information
     """
-    return pd.DataFrame(data=[{
-        "molecule_id": molecule_id,
-        "parent_name": parent_name,
-        "failure_reason": failure_reason,
-        "parent_smiles": parent_smiles,
-    }])
+    return pd.DataFrame(
+        data=[
+            {
+                "molecule_id": molecule_id,
+                "parent_name": parent_name,
+                "failure_reason": failure_reason,
+                "parent_smiles": parent_smiles,
+            }
+        ]
+    )
+
+def get_largest_fragment(smiles: str) -> str:
+    """
+    Get the largest fragment of a molecule.
+
+    Args:
+        smiles: SMILES string of the molecule
+
+    Returns:
+        SMILES string of the largest fragment
+    """
+    mol = MolFromSmiles(smiles)
+    if mol is None:
+        raise RuntimeError(f"Cannot parse SMILES: {smiles}")
+    fragments = GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+    if len(fragments) > 1:
+        largest_fragment = max(fragments, key=lambda y: y.GetNumAtoms())
+        return MolToSmiles(largest_fragment)
+    else:
+        return smiles
+
 
 def standardize_molecules(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Standardize molecules in the DataFrame and filter out problematic molecules.
-    
+
     This function performs the following operations:
     1. Standardizes molecules using MolVS
     2. Removes salts (keeps only the largest fragment) with RDKit
     3. Filters out molecules containing atoms other than H, C, N, O, P, S, F, Cl, Br, I
-    
+
     Args:
         df: DataFrame containing molecules (must have 'ROMol' column)
-        
+
     Returns:
         Tuple of (standardized_df, failed_molecules_df)
     """
-    from rdkit.Chem.rdmolops import GetMolFrags, RemoveHs, SanitizeMol
-    from rdkit.Chem.rdmolfiles import MolToSmiles
-    
+
     # Initialize lists to track failed molecules
     failed_molecules = []
-    
+
     # 1. Standardize molecules with MolVS
     print("Standardizing molecules with MolVS...")
     standardizer = Standardizer()
-    
+
     # Process each molecule
     for idx, row in df.iterrows():
         mol = row["ROMol"]
         molecule_id = int(idx) if isinstance(idx, (int, float, str)) else 0
         parent_name = str(row.get("ID", f"molecule_{idx}"))
-        
+
         try:
             # Standardize the molecule
             mol = standardizer.standardize(mol)
-            
+
             # 2. Remove salts - get the largest fragment
             fragments = GetMolFrags(mol, asMols=True, sanitizeFrags=True)
             if len(fragments) > 1:
                 # Keep only the largest fragment
                 largest_fragment = max(fragments, key=lambda x: x.GetNumAtoms())
                 mol = largest_fragment
-            
+
             # 3. Check for allowed atoms only (H, C, N, O, P, S, F, Cl, Br, I)
             allowed_atoms = {1, 6, 7, 8, 15, 16, 9, 17, 35, 53}
             for atom in mol.GetAtoms():
                 if atom.GetAtomicNum() not in allowed_atoms:
-                    failed_molecules.append(create_failed_molecule_record(
-                        molecule_id=molecule_id,
-                        parent_name=parent_name,
-                        failure_reason=f"disallowed_atom_detected: {atom.GetSymbol()}",
-                        parent_smiles=MolToSmiles(mol) if mol is not None else None
-                    ))
+                    failed_molecules.append(
+                        create_failed_molecule_record(
+                            molecule_id=molecule_id,
+                            parent_name=parent_name,
+                            failure_reason=f"disallowed_atom_detected: {atom.GetSymbol()}",
+                            parent_smiles=MolToSmiles(mol) if mol is not None else None,
+                        )
+                    )
                     break
             else:
                 df.at[idx, "ROMol"] = mol
                 continue
-                
+
         except Exception as e:
-            failed_molecules.append(create_failed_molecule_record(
-                molecule_id=molecule_id,
-                parent_name=parent_name,
-                failure_reason=f"standardization_error: {str(e)}",
-                parent_smiles=MolToSmiles(mol) if mol is not None else None
-            ))
+            failed_molecules.append(
+                create_failed_molecule_record(
+                    molecule_id=molecule_id,
+                    parent_name=parent_name,
+                    failure_reason=f"standardization_error: {str(e)}",
+                    parent_smiles=MolToSmiles(mol) if mol is not None else None,
+                )
+            )
             continue
-    
+
     # Remove failed molecules from the DataFrame
     failed_indices = [record.iloc[0]["molecule_id"] for record in failed_molecules]
     df_standardized = df.drop(failed_indices).reset_index(drop=True)
-    
+
     # Combine all failed molecule records
-    failed_df = pd.concat(failed_molecules, ignore_index=True) if failed_molecules else pd.DataFrame()
-    
-    print(f"Standardization complete: {len(df_standardized)} molecules passed, {len(failed_df)} failed")
-    
+    failed_df = (
+        pd.concat(failed_molecules, ignore_index=True)
+        if failed_molecules
+        else pd.DataFrame()
+    )
+
+    print(
+        f"Standardization complete: {len(df_standardized)} molecules passed, {len(failed_df)} failed"
+    )
+
     return df_standardized, failed_df
