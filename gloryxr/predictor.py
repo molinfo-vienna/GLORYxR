@@ -229,7 +229,16 @@ class MetabolitePredictor:
         """Get prediction score for a single row."""
         subset = row["Subset"]
         descriptors = row["Descriptors"]
+        priority = row["Priority"]
+
+        if priority == "common":
+            priority_factor = 1.
+        elif priority == "uncommon":
+            priority_factor = 0.2
+        else:
+            raise ValueError(f"Invalid priority: {priority}")
 
         if subset in self.models:
-            return self.models[subset].predict_proba([descriptors])[0][-1]
+            som_probability = self.models[subset].predict_proba([descriptors])[0][-1]
+            return som_probability * priority_factor
         return 0.0

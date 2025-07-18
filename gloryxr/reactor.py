@@ -100,9 +100,13 @@ class Reactor:
             concrete_reaction.AddReactantTemplate(RemoveHs(educt_))
             concrete_reaction.AddProductTemplate(RemoveHs(product_))
 
-            # Copy reaction name if available
+            # Copy reaction name, priority, and subset if available
             if reaction.HasProp("_Name"):
                 concrete_reaction.SetProp("_Name", reaction.GetProp("_Name"))
+            if reaction.HasProp("_Priority"):
+                concrete_reaction.SetProp("_Priority", reaction.GetProp("_Priority"))
+            if reaction.HasProp("_Subset"):
+                concrete_reaction.SetProp("_Subset", reaction.GetProp("_Subset"))
 
             reactions.append(concrete_reaction)
 

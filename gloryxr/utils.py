@@ -48,6 +48,9 @@ def reactions_to_table(reactions: list[ChemicalReaction]) -> pd.DataFrame:
                 "Reaction": (
                     reaction.GetProp("_Name") if reaction.HasProp("_Name") else None
                 ),
+                "Priority": reaction.GetProp("_Priority")
+                if reaction.HasProp("_Priority")
+                else None,
             }
             for reaction in reactions
         ]
