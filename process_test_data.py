@@ -1,11 +1,11 @@
-#pyright: basic
+# pyright: basic
 
 import json
 
 import pandas as pd
 from rdkit.Chem import PandasTools
 from rdkit.Chem.rdchem import Mol
-from rdkit.Chem.rdmolfiles import MolFromSmiles
+from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
 
 
 def compute_mol(smiles: str) -> Mol | None:
@@ -40,7 +40,9 @@ def process_metabolites(df) -> pd.DataFrame:
     metabolites_exploded: pd.DataFrame = df.explode("metabolites")
 
     # Normalize metabolites data into separate columns
-    metabolites_df: pd.DataFrame = pd.json_normalize(data=metabolites_exploded["metabolites"].tolist())
+    metabolites_df: pd.DataFrame = pd.json_normalize(
+        data=metabolites_exploded["metabolites"].tolist()
+    )
 
     # Rename metabolite columns to match reference data structure
     metabolites_df.rename(
@@ -50,6 +52,12 @@ def process_metabolites(df) -> pd.DataFrame:
             "metaboliteName": "metabolite_name",
         },
         inplace=True,
+    )
+
+    metabolites_df["metabolite_smiles"] = metabolites_df["metabolite_smiles"].apply(
+        lambda x: MolToSmiles(
+            MolFromSmiles(x), canonical=True, ignoreAtomMapNumbers=True
+        )
     )
 
     # Combine parent data with metabolite data
@@ -69,13 +77,22 @@ def main():
     print("Processing test dataset...")
 
     # Load and parse test data
-    with open(file="GLORYx_data/test/gloryx_test_dataset.json", mode="r", encoding="utf-8") as f:
+    with open(
+        file="GLORYx_data/test/gloryx_test_dataset.json", mode="r", encoding="utf-8"
+    ) as f:
         test_data = json.load(f)
 
     # Convert to DataFrame and rename columns for consistency
     test_df = pd.DataFrame(test_data)
     test_df = test_df.rename(
         columns={"drugName": "parent_name", "smiles": "parent_smiles"}
+    )
+
+    # Canonicalize SMILES
+    test_df["parent_smiles"] = test_df["parent_smiles"].apply(
+        lambda x: MolToSmiles(
+            MolFromSmiles(x), canonical=True, ignoreAtomMapNumbers=True
+        )
     )
 
     # Add RDKit mol objects for parent molecules
@@ -91,13 +108,11 @@ def main():
 
     # Save parent molecules to SDF
     PandasTools.WriteSDF(
-        df=test_df, 
+        df=test_df,
         out="GLORYx_data/test/gloryx_test_dataset.sdf",
-        molColName="parent_mol", 
-        idName="parent_name", 
-        properties=[
-            "doi", "parent_smiles"
-        ],
+        molColName="parent_mol",
+        idName="parent_name",
+        properties=["doi", "parent_smiles"],
     )
     print(f"Saved test dataset to SDF: {len(test_df)} parent molecules")
 
@@ -141,10 +156,10 @@ def main():
 
     # Save metabolites to SDF
     PandasTools.WriteSDF(
-        df=test_metabolites_df, 
-        out="GLORYx_data/test/gloryx_test_dataset_metabolites_exploded.sdf", 
-        molColName="metabolite_mol", 
-        idName="metabolite_name", 
+        df=test_metabolites_df,
+        out="GLORYx_data/test/gloryx_test_dataset_metabolites_exploded.sdf",
+        molColName="metabolite_mol",
+        idName="metabolite_name",
         properties=[
             "parent_name",
             "parent_smiles",
