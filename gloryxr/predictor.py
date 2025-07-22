@@ -23,6 +23,14 @@ __all__ = ["Prediction", "MetabolitePredictor"]
 
 @dataclass
 class Prediction:
+    """
+    Class that encapsulates a single reaction prediction.
+
+    Args:
+        concrete_reaction: The specific reaction that was predicted.
+        score: The probability score of the predicted reaction, relative to other reactions.
+    """
+
     concrete_reaction: ChemicalReaction
     score: float
 
@@ -46,21 +54,17 @@ class Prediction:
 class MetabolitePredictor:
     """
     Main class for metabolite prediction using GLORYxR.
+
+    Args:
+        strict_soms: Whether to use strict SOMs
     """
 
     def __init__(
         self,
+        *,
         strict_soms: bool = False,
         _models: type[_ModelProvider] = _LocalModelProvider,
     ) -> None:
-        """
-        Initialize the metabolite predictor.
-
-        Args:
-            models: Dictionary of loaded models
-            reaction_subsets: Dictionary mapping reaction names to rule subsets
-            strict_soms: Whether to use strict SOMs
-        """
         self.model_provider = _models()
         self.vectorizer = Fame3RVectorizer().fit()
         self.reactor = Reactor(strict_soms=strict_soms)

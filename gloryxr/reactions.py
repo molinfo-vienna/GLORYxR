@@ -27,15 +27,12 @@ class Reactor:
 
     This class manages abstract reactions and provides methods to generate
     concrete reactions from input molecules.
+
+    Args:
+        strict_soms: Whether to use strict SOM validation
     """
 
     def __init__(self, strict_soms: bool = False) -> None:
-        """
-        Initialize the Reactor with reaction rules.
-
-        Args:
-            strict_soms: Whether to use strict SOM validation
-        """
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = []
 
