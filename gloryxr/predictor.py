@@ -86,26 +86,22 @@ class MetabolitePredictor:
             pred for pred in predictions if pred.product.GetNumHeavyAtoms() >= 3
         ]
 
-        return predictions
+        return list(predictions)
 
     def predict_one(self, educt: Mol) -> list[Prediction]:
-        concrete_reactions = self.reactor.react_one(educt)
-
-        predictions = []
-        for concrete_reaction in concrete_reactions:
-            score = self._generate_predictions(
-                concrete_reaction.GetReactants()[0],
-                concrete_reaction.GetProp("_Priority"),
-                concrete_reaction.GetProp("_Subset"),
+        predictions = [
+            Prediction(
+                concrete_reaction=concrete_reaction,
+                score=self._generate_predictions(
+                    concrete_reaction.GetReactants()[0],
+                    concrete_reaction.GetProp("_Priority"),
+                    concrete_reaction.GetProp("_Subset"),
+                ),
             )
-            predictions.append(
-                Prediction(
-                    concrete_reaction=concrete_reaction,
-                    score=score,
-                )
-            )
+            for concrete_reaction in self.reactor.react_one(educt)
+        ]
 
-        return predictions
+        return list(predictions)
 
     def _generate_predictions(
         self,
