@@ -70,6 +70,21 @@ class MetabolitePredictor:
             (self.predict_one(educt) for educt in educts)
         )
 
+        return list(predictions)
+
+    def predict_one(self, educt: Mol) -> list[Prediction]:
+        predictions = [
+            Prediction(
+                concrete_reaction=concrete_reaction,
+                score=self._generate_predictions(
+                    concrete_reaction.GetReactants()[0],
+                    concrete_reaction.GetProp("_Priority"),
+                    concrete_reaction.GetProp("_Subset"),
+                ),
+            )
+            for concrete_reaction in self.reactor.react_one(educt)
+        ]
+
         # Deduplicate predicted products
         deduplicated: dict[str, Prediction] = {}
         for prediction in predictions:
@@ -84,21 +99,6 @@ class MetabolitePredictor:
         # Filter out products with less than 3 heavy atoms
         predictions = [
             pred for pred in predictions if pred.product.GetNumHeavyAtoms() >= 3
-        ]
-
-        return list(predictions)
-
-    def predict_one(self, educt: Mol) -> list[Prediction]:
-        predictions = [
-            Prediction(
-                concrete_reaction=concrete_reaction,
-                score=self._generate_predictions(
-                    concrete_reaction.GetReactants()[0],
-                    concrete_reaction.GetProp("_Priority"),
-                    concrete_reaction.GetProp("_Subset"),
-                ),
-            )
-            for concrete_reaction in self.reactor.react_one(educt)
         ]
 
         return list(predictions)
