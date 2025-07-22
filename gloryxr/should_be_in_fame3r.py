@@ -69,7 +69,4 @@ class Fame3RVectorizer(BaseEstimator, TransformerMixin, _SetOutputMixin):
         return np.full(len(self.feature_names_), np.nan)
 
 
-class ModelMultiplexer(BaseEstimator): ...
-
-
 # check_estimator(Fame3RVectorizer())
