@@ -31,6 +31,9 @@ def reactions_to_table(reactions: list[ChemicalReaction]):
                 "Reaction": (
                     reaction.GetProp("_Name") if reaction.HasProp("_Name") else None
                 ),
+                "Subset": reaction.GetProp("_Subset")
+                if reaction.HasProp("_Subset")
+                else None,
                 "Priority": reaction.GetProp("_Priority")
                 if reaction.HasProp("_Priority")
                 else None,
