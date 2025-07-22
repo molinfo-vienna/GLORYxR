@@ -1,5 +1,3 @@
-# pyright: basic
-
 """
 Core chemical reaction processing engine for GLORYxR.
 

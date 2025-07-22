@@ -1,5 +1,3 @@
-# pyright: basic
-
 """
 Utility functions for GLORYxR metabolite prediction.
 """

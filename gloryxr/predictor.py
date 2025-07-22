@@ -1,5 +1,3 @@
-# pyright: basic
-
 """
 Main class for metabolite prediction using GLORYxR.
 """

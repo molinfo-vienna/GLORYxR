@@ -1,5 +1,3 @@
-# pyright: basic
-
 """
 Functions to annotate the educt molecule with SOM indices.
 """
