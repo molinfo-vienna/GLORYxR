@@ -1,0 +1,39 @@
+name: Documentation
+
+on:
+  push:
+    branches: ["master"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-sphinx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+           enable-cache: true
+      - uses: actions/configure-pages@v5
+      - run: uv --directory docs run sphinx-build -M html . _build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/_build/html
+
+  deploy-pages:
+    needs: build-sphinx
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
