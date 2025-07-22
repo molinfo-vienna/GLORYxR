@@ -6,6 +6,8 @@ from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
+__all__ = ["reactions_to_table", "extract_smiles_for_soms", "mol_without_mappings"]
+
 
 def reactions_to_table(reactions: list[ChemicalReaction]):
     """

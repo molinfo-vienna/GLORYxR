@@ -16,6 +16,8 @@ from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
 
+__all__ = ["Reactor"]
+
 _rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 
 

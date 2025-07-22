@@ -8,6 +8,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils._set_output import _SetOutputMixin
 from sklearn.utils.validation import check_array, check_is_fitted
 
+__all__ = ["Fame3RVectorizer"]
+
 
 class Fame3RVectorizer(BaseEstimator, TransformerMixin, _SetOutputMixin):
     def __init__(self, radius: int = 5) -> None:

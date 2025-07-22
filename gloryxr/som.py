@@ -6,6 +6,8 @@ import numpy as np
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdmolops import GetDistanceMatrix
 
+__all__ = ["annotate_educt_and_product_inplace"]
+
 
 def annotate_educt_and_product_inplace(
     educt: Mol, product: Mol, strict_soms: bool = False

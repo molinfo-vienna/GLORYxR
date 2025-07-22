@@ -18,6 +18,8 @@ from gloryxr.utils import (
     mol_without_mappings,
 )
 
+__all__ = ["Prediction", "MetabolitePredictor"]
+
 
 @dataclass
 class Prediction:
