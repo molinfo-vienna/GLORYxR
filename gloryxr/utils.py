@@ -8,8 +8,13 @@ from rdkit.Chem.rdmolfiles import MolToSmiles
 
 __all__ = ["reactions_to_table", "extract_smiles_for_soms", "mol_without_mappings"]
 
+# We import pandas inside of the function so that the package may
+# continue working without a hard dependency on pandas.
 
-def reactions_to_table(reactions: list[ChemicalReaction]) -> "pandas.DataFrame":  # pyright: ignore[reportUndefinedVariable]
+
+def reactions_to_table(
+    reactions: list[ChemicalReaction],
+) -> "pandas.DataFrame":  # pyright: ignore[reportUndefinedVariable] # noqa: F821
     """
     Convert chemical reactions to a pandas DataFrame.
 
@@ -19,8 +24,6 @@ def reactions_to_table(reactions: list[ChemicalReaction]) -> "pandas.DataFrame":
     Returns:
         DataFrame with Educt, Product, and Reaction columns, as well as additional columns for certain reaction properties.
     """
-    # We import this within the function so that the package may
-    # continue working without a direct dependency on pandas.
     import pandas as pd
 
     return pd.DataFrame(
