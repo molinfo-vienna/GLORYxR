@@ -13,7 +13,7 @@ Re-exports
    :header-rows: 0
    :widths: 30 70
 
-   * - :class:`MetabolitePredictor <gloryxr.predictor.MetabolitePredictor>`
+   * - :class:`MetabolitePredictor <gloryxr.prediction.MetabolitePredictor>`
      - Main class for metabolite prediction using GLORYxR.
    * - :class:`Reactor <gloryxr.reactions.Reactor>`
      - Core chemical reaction processing engine for GLORYxR.

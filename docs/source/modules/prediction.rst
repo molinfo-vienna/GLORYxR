@@ -1,8 +1,8 @@
 Metabolite prediction
 =====================
 
-:mod:`gloryxr.predictor`
-************************
+:mod:`gloryxr.prediction`
+*************************
 
-.. automodule:: gloryxr.predictor
+.. automodule:: gloryxr.prediction
    :members:

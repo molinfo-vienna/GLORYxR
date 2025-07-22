@@ -44,11 +44,11 @@ class Prediction:
 
     def get_educt_smiles(self, clean: bool = True) -> str:
         mol = mol_without_mappings(self.educt) if clean else self.educt
-        return MolToSmiles(mol)
+        return MolToSmiles(mol, ignoreAtomMapNumbers=True)
 
     def get_product_smiles(self, clean: bool = True) -> str:
         mol = mol_without_mappings(self.product) if clean else self.product
-        return MolToSmiles(mol)
+        return MolToSmiles(mol, ignoreAtomMapNumbers=True)
 
 
 class MetabolitePredictor:
