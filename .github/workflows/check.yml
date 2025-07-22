@@ -1,0 +1,32 @@
+name: Check
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: '*'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v6
+    - run: uv run ruff check .
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v6
+    - run: uv run ruff format . --check
+
+  types:
+    name: Types
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v6
+    - run: uv run basedpyright .

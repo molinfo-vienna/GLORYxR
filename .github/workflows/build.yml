@@ -1,0 +1,16 @@
+name: Build
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: '*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v6
+    - run: uv run python -m build
