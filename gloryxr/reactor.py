@@ -13,7 +13,7 @@ import itertools
 from rdkit.Chem.inchi import MolToInchi
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
-from rdkit.Chem.rdmolops import AddHs, RemoveHs, SanitizeMol
+from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
 from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
@@ -66,7 +66,7 @@ class Reactor:
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
                 (
-                    self._to_concrete_reactions(reaction=abstract_reaction, educt=mol)
+                    _to_concrete_reactions(reaction=abstract_reaction, educt=mol)
                     for abstract_reaction in self.abstract_reactions
                 )
             )
@@ -80,7 +80,14 @@ class Reactor:
                 strict_soms=self.strict_soms,
             )
 
-        return concrete_reactions
+        return list(
+            itertools.chain.from_iterable(
+                _separate_reactions_for_products(concrete_reaction)
+                for concrete_reaction in concrete_reactions
+            )
+        )
+
+
 def _to_concrete_reactions(
     reaction: ChemicalReaction, educt: Mol
 ) -> list[ChemicalReaction]:
@@ -143,3 +150,30 @@ def _to_concrete_reactions(
         reactions.append(concrete_reaction)
 
     return reactions
+
+
+def _separate_reactions_for_products(
+    combined_reaction: ChemicalReaction,
+) -> list[ChemicalReaction]:
+    product_or_products = combined_reaction.GetProducts()[0]
+    products = GetMolFrags(product_or_products, asMols=True, sanitizeFrags=False)
+
+    if len(products) == 1:
+        return [combined_reaction]
+
+    results = []
+    for product in products:
+        split_reaction = ChemicalReaction()
+        split_reaction.AddReactantTemplate(combined_reaction.GetReactants()[0])
+        split_reaction.AddProductTemplate(product)
+
+        if combined_reaction.HasProp("_Name"):
+            split_reaction.SetProp("_Name", combined_reaction.GetProp("_Name"))
+        if combined_reaction.HasProp("_Priority"):
+            split_reaction.SetProp("_Priority", combined_reaction.GetProp("_Priority"))
+        if combined_reaction.HasProp("_Subset"):
+            split_reaction.SetProp("_Subset", combined_reaction.GetProp("_Subset"))
+
+        results.append(split_reaction)
+
+    return results
