@@ -1,7 +1,7 @@
 # pyright: basic
 
+from gloryxr import utils
 from gloryxr.predictor import MetabolitePredictor
 from gloryxr.reactor import Reactor
-from gloryxr.utils import *
 
-__all__ = ["Reactor", "MetabolitePredictor"]
+__all__ = ["Reactor", "MetabolitePredictor", "utils"]
