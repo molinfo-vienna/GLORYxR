@@ -2,24 +2,7 @@ import json
 
 import pandas as pd
 from rdkit.Chem import PandasTools
-from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
-
-
-def compute_mol(smiles: str) -> Mol | None:
-    """
-    Safely compute RDKit mol object from SMILES string.
-
-    Args:
-        smiles (str): SMILES string
-
-    Returns:
-        rdkit.Chem.rdchem.Mol or None: RDKit mol object or None if invalid
-    """
-    try:
-        return MolFromSmiles(smiles)
-    except:
-        return None
 
 
 def process_metabolites(df) -> pd.DataFrame:
@@ -94,7 +77,7 @@ def main():
     )
 
     # Add RDKit mol objects for parent molecules
-    test_df["parent_mol"] = test_df["parent_smiles"].apply(compute_mol)
+    test_df["parent_mol"] = test_df["parent_smiles"].apply(MolFromSmiles)
 
     # Filter out invalid SMILES
     problematic_smiles = test_df[test_df["parent_mol"].isna()]["parent_smiles"].tolist()
@@ -138,7 +121,7 @@ def main():
     # Add RDKit mol objects for metabolites
     test_metabolites_df["metabolite_mol"] = test_metabolites_df[
         "metabolite_smiles"
-    ].apply(compute_mol)
+    ].apply(MolFromSmiles)
 
     # Filter out invalid metabolite SMILES
     problematic_metabolite_smiles = test_metabolites_df[
