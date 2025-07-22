@@ -9,7 +9,7 @@ from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
 
-def reactions_to_table(reactions: list[ChemicalReaction]) -> pd.DataFrame:
+def reactions_to_table(reactions: list[ChemicalReaction]):
     """
     Convert chemical reactions to a pandas DataFrame.
 
@@ -19,6 +19,10 @@ def reactions_to_table(reactions: list[ChemicalReaction]) -> pd.DataFrame:
     Returns:
         DataFrame with Educt, Product, and Reaction columns
     """
+    # We import this within the function so that the package may
+    # continue working without a direct dependency on pandas.
+    import pandas as pd
+
     return pd.DataFrame(
         [
             {
