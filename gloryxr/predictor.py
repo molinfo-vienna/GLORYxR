@@ -4,16 +4,43 @@
 Main class for metabolite prediction using GLORYxR.
 """
 
-import pandas as pd
+import itertools
+from dataclasses import dataclass
+from typing import Literal
+
+from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
-from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
-from rdkit.Chem.rdmolops import GetMolFrags
+from rdkit.Chem.rdmolfiles import MolToSmiles
 from sklearn.ensemble import RandomForestClassifier
 
-import gloryxr
+from gloryxr.reactor import Reactor
 from gloryxr.should_be_in_fame3r import Fame3RVectorizer
-from gloryxr.utils import (clean_smiles, create_failed_molecule_record,
-                           extract_smiles_for_soms, get_largest_fragment, reactions_to_table)
+from gloryxr.utils import (
+    extract_smiles_for_soms,
+    mol_without_mappings,
+)
+
+
+@dataclass
+class Prediction:
+    concrete_reaction: ChemicalReaction
+    score: float
+
+    @property
+    def educt(self) -> Mol:
+        return self.concrete_reaction.GetReactants()[0]
+
+    @property
+    def product(self) -> Mol:
+        return self.concrete_reaction.GetProducts()[0]
+
+    def get_educt_smiles(self, clean: bool = True) -> str:
+        mol = mol_without_mappings(self.educt) if clean else self.educt
+        return MolToSmiles(mol)
+
+    def get_product_smiles(self, clean: bool = True) -> str:
+        mol = mol_without_mappings(self.product) if clean else self.product
+        return MolToSmiles(mol)
 
 
 class MetabolitePredictor:
@@ -37,202 +64,70 @@ class MetabolitePredictor:
         """
         self.models = models
         self.reaction_subsets = reaction_subsets
-        self.strict_soms = strict_soms
         self.vectorizer = Fame3RVectorizer().fit()
+        self.reactor = Reactor(strict_soms=strict_soms)
 
-        # Initialize reactor
-        self.reactor = gloryxr.Reactor(strict_soms=strict_soms)
-        print(
-            f"Initialized reactor with {len(self.reactor.abstract_reactions)} reaction rules"
+    def predict_molecules(self, educts: list[Mol]) -> list[Prediction]:
+        predictions = itertools.chain.from_iterable(
+            (self.predict_one(educt) for educt in educts)
         )
 
-    def predict_molecules(self, df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-        """
-        Predict metabolites for all molecules in the DataFrame.
+        # Deduplicate predicted products
+        deduplicated: dict[str, Prediction] = {}
+        for prediction in predictions:
+            product_smiles = prediction.get_product_smiles()
+            if (
+                product_smiles not in deduplicated
+                or deduplicated[product_smiles].score < prediction.score
+            ):
+                deduplicated[product_smiles] = prediction
+        predictions = list(deduplicated.values())
 
-        Args:
-            df: DataFrame containing molecules (must have 'ROMol' column)
+        # Filter out products with less than 3 heavy atoms
+        predictions = [
+            pred for pred in predictions if pred.product.GetNumHeavyAtoms() >= 3
+        ]
 
-        Returns:
-            Tuple of (predictions_df, failed_molecules_df)
-        """
-        print(f"Processing {len(df)} molecules...")
+        return predictions
 
-        predictions_list = []
-        failed_list = []
+    def predict_one(self, educt: Mol) -> list[Prediction]:
+        concrete_reactions = self.reactor.react_one(educt)
 
-        for molecule_id, (_, row) in enumerate(df.iterrows()):
-            mol = row["ROMol"]
-            parent_name = str(row.get(key="ID", default=f"molecule_{molecule_id}"))
-
-            result = self._process_molecule(mol, parent_name)
-
-            if result is None:
-                failed_list.append(
-                    create_failed_molecule_record(
-                        molecule_id, parent_name, failure_reason="processing_error"
-                    )
+        predictions = []
+        for concrete_reaction in concrete_reactions:
+            score = self._generate_predictions(
+                concrete_reaction.GetReactants()[0],
+                concrete_reaction.GetProp("_Priority"),
+                concrete_reaction.GetProp("_Subset"),
+            )
+            predictions.append(
+                Prediction(
+                    concrete_reaction=concrete_reaction,
+                    score=score,
                 )
-            elif isinstance(result, pd.DataFrame) and len(result) == 0:
-                failed_list.append(
-                    create_failed_molecule_record(
-                        molecule_id,
-                        parent_name,
-                        failure_reason="no_predictions_generated",
-                        parent_smiles=MolToSmiles(mol) if mol is not None else None,
-                    )
-                )
-            else:
-                predictions_list.append(result)
-
-        # Combine results
-        predictions_df = (
-            pd.concat(predictions_list, ignore_index=True)
-            if predictions_list
-            else pd.DataFrame()
-        )
-        failed_df = (
-            pd.concat(failed_list, ignore_index=True) if failed_list else pd.DataFrame()
-        )
-
-        # Clean up smiles
-        predictions_df["parent_smiles"] = predictions_df["parent_smiles"].apply(
-            clean_smiles
-        )
-        predictions_df["metabolite_smiles"] = predictions_df["metabolite_smiles"].apply(
-            clean_smiles
-        )
-
-        # Filter out duplicated predictions
-        predictions_df = pd.DataFrame(
-            predictions_df.sort_values(by="Score", ascending=False)
-            .groupby(by=["metabolite_smiles"], sort=False, as_index=False)
-            .first()
-            .reset_index(drop=True)[
-                [
-                    "parent_name",
-                    "parent_smiles",
-                    "metabolite_smiles",
-                    "Reaction",
-                    "Subset",
-                    "SOM",
-                    "Score",
-                ]
-            ]
-        )
-
-        # If a "metabolite" consists in multiple fragments, only keep the largest fragment
-        predictions_df["metabolite_smiles"] = predictions_df["metabolite_smiles"].apply(get_largest_fragment)
-
-        # Filter out predictions with less than 3 heavy atoms
-        mask = predictions_df["metabolite_smiles"].apply(
-            lambda x: MolFromSmiles(x).GetNumHeavyAtoms() >= 3
-        )
-        predictions_df = pd.DataFrame(predictions_df[mask])
-
-        # Format predictions dataframe (lowercase column names)
-        predictions_df.rename(
-            columns={
-                "Subset": "rule_subset",
-                "Reaction": "reaction",
-                "Score": "score",
-                "SOM": "som",
-            },
-            inplace=True,
-        )
-
-        # Resort predictions according to parent compound and score
-        predictions_df = predictions_df.sort_values(by=["parent_smiles", "score"], ascending=[True, False])
-
-        return predictions_df, failed_df
-
-    def _process_molecule(self, mol, parent_name: str) -> pd.DataFrame | None:
-        """
-        Process a single molecule and return predictions or None if failed.
-
-        Args:
-            mol: RDKit molecule object
-            parent_name: Name/ID of the molecule
-
-        Returns:
-            DataFrame with predictions or None if failed
-        """
-        if mol is None:
-            return None
-
-        try:
-            reactions = self.reactor.react_one(mol)
-            if not reactions:
-                return pd.DataFrame()
-
-            reactions_df = reactions_to_table(reactions)
-            reactions_df["Subset"] = reactions_df["Reaction"].map(
-                lambda name: self.reaction_subsets.get(name, "Unknown")
             )
 
-            return self._generate_predictions(reactions_df, parent_name)
-
-        except Exception as e:
-            print(f"Error processing molecule {parent_name}: {e}")
-            return None
+        return predictions
 
     def _generate_predictions(
-        self, reactions_df: pd.DataFrame, parent_name: str
-    ) -> pd.DataFrame:
-        """
-        Generate predictions from reactions DataFrame.
-
-        Args:
-            reactions_df: DataFrame with reactions
-            parent_name: Name of the parent molecule
-
-        Returns:
-            DataFrame with predictions
-        """
-        # Extract SOMs and explode
-        reactions_df["SOM"] = reactions_df["Educt"].map(extract_smiles_for_soms)
-        exploded_df = reactions_df.explode("SOM")
-
-        if len(exploded_df) == 0:
-            return pd.DataFrame()
-
-        # Generate descriptors
-        exploded_df["Descriptors"] = exploded_df["SOM"].map(
-            self.vectorizer.transform_one
-        )
-
-        # Apply model predictions
-        exploded_df["Score"] = exploded_df.apply(
-            lambda row: self._get_prediction_score(row), axis=1
-        )
-
-        # Convert to final format
-        predictions = exploded_df.copy()
-        predictions["parent_smiles"] = predictions["Educt"].apply(MolToSmiles)
-        predictions["metabolite_smiles"] = predictions["Product"].apply(MolToSmiles)
-        predictions["parent_name"] = parent_name
-
-        # Keep only necessary columns and ensure it's a DataFrame
-        columns_to_keep = [
-            "parent_name",
-            "parent_smiles",
-            "metabolite_smiles",
-            "Reaction",
-            "Subset",
-            "SOM",
-            "Score",
+        self,
+        marked_educt: Mol,
+        priority: Literal["common", "uncommon"],
+        subset: str,
+    ) -> float:
+        som_smiles = extract_smiles_for_soms(marked_educt)
+        descriptors = [
+            self.vectorizer.transform_one(som_smile) for som_smile in som_smiles
         ]
-        result_df = predictions.loc[:, columns_to_keep].copy()
-        return result_df
+        scores = [self._get_prediction_score(d, priority, subset) for d in descriptors]
 
-    def _get_prediction_score(self, row) -> float:
-        """Get prediction score for a single row."""
-        subset = row["Subset"]
-        descriptors = row["Descriptors"]
-        priority = row["Priority"]
+        return max(scores) if scores else float("nan")
 
+    def _get_prediction_score(
+        self, descriptors, priority: Literal["common", "uncommon"], subset: str
+    ) -> float:
         if priority == "common":
-            priority_factor = 1.
+            priority_factor = 1.0
         elif priority == "uncommon":
             priority_factor = 0.2
         else:
@@ -241,4 +136,5 @@ class MetabolitePredictor:
         if subset in self.models:
             som_probability = self.models[subset].predict_proba([descriptors])[0][-1]
             return som_probability * priority_factor
-        return 0.0
+        else:
+            raise ValueError(f"Invalid reaction class: {subset}")
