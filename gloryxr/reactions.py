@@ -16,7 +16,7 @@ from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
 
-rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
+_rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 
 
 class Reactor:
@@ -42,7 +42,7 @@ class Reactor:
 
     def _load_reaction_rules(self) -> None:
         """Load abstract reaction rules from the CSV file."""
-        with rules_data.joinpath("gloryx_reactionrules.csv").open() as f:
+        with _rules_data.joinpath("gloryx_reactionrules.csv").open() as f:
             for row in csv.DictReader(f):
                 reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
                 reaction.SetProp("_Name", row["Reaction name"])
