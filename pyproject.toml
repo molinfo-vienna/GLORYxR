@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gloryxr"
 version = "0.1.0"
-description = "Add your description here"
+description = "The next generation of the GLORYx metabolite prediction system"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
