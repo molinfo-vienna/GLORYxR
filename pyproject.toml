@@ -11,18 +11,31 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "basedpyright>=1.29.4",
-    "jupyter>=1.1.1",
-    "jupyter-ruff>=0.3.0",
+build = ["build"]
+tests = [
     "pytest>=8.4.1",
-    "ruff>=0.11.13",
+    "syrupy>=4.9.1",
+]
+docs = [
+    "myst-parser>=4.0.1",
+    "sphinx>=8.2.3",
+    "sphinx-book-theme>=1.1.4",
 ]
 full = [
     "molvs>=0.1.1",
     "pandas>=2.3.0",
     "tqdm>=4.67.1",
     "scikit-learn>=1.7.0",
+]
+dev = [
+    "basedpyright>=1.29.4",
+    "jupyter>=1.1.1",
+    "jupyter-ruff>=0.3.0",
+    "ruff>=0.11.13",
+    { include-group = "build" },
+    { include-group = "tests" },
+    { include-group = "docs" },
+    { include-group = "full" },
 ]
 
 [tool.pyright]
