@@ -13,7 +13,7 @@ def annotate_educt_and_product_inplace(
     educt: Mol, product: Mol, strict_soms: bool = False
 ) -> None:
     """
-    Annotate the educt and product molecules with the SOM indices.
+    Annotate the educt and product molecules with SOM indices.
     """
 
     product_idxs = (
@@ -29,9 +29,6 @@ def annotate_educt_and_product_inplace(
 
 
 def _get_loose_som_indices(product: Mol) -> list[int]:
-    """
-    Get loose SOM indices for the product molecule.
-    """
     return [
         atom.GetIdx()
         for atom in product.GetAtoms()
@@ -40,9 +37,6 @@ def _get_loose_som_indices(product: Mol) -> list[int]:
 
 
 def _get_strict_som_indices(educt: Mol, product: Mol) -> list[int]:
-    """
-    Get strict SOM indices for the product molecule.
-    """
     involved_idx_mappings = {
         atom.GetIntProp("react_atom_idx"): atom.GetIdx()
         for atom in product.GetAtoms()
