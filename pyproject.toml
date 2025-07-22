@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling<=1.18.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "gloryxr"
 version = "0.1.0"
@@ -37,6 +41,12 @@ dev = [
     { include-group = "docs" },
     { include-group = "full" },
 ]
+
+[tool.hatch.build.targets.sdist]
+include = ["gloryxr"]
+
+[tool.hatch.build.targets.wheel]
+include = ["gloryxr"]
 
 [tool.pyright]
 typeCheckingMode = "basic"
