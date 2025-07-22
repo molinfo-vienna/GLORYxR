@@ -53,65 +53,6 @@ class Reactor:
 
                 self.abstract_reactions.append(reaction)
 
-    def _to_concrete_reactions(
-        self, reaction: ChemicalReaction, educt: Mol
-    ) -> list[ChemicalReaction]:
-        """
-        Convert an abstract reaction to concrete reactions for a given educt.
-
-        This method applies the abstract reaction to the educt molecule and
-        generates all possible concrete reactions, filtering out duplicates
-        and invalid products.
-
-        Args:
-            reaction: Abstract chemical reaction
-            educt: Input molecule
-
-        Returns:
-            List of concrete reactions
-        """
-        # Generate all possible products from the reaction
-        products = itertools.chain.from_iterable(reaction.RunReactants([AddHs(educt)]))
-
-        known_products = set()
-        reactions = []
-
-        for product in products:
-            # Sanitize the product molecule
-            try:
-                block = BlockLogs()
-                SanitizeMol(product)
-                del block
-            except Exception:
-                # Skip invalid products
-                continue
-
-            # Check for duplicate products using InChI
-            if (inchi := MolToInchi(product)) not in known_products:
-                known_products.add(inchi)
-            else:
-                continue
-
-            # Create concrete reaction
-            product_ = AddHs(product)
-            educt_ = Mol(educt)
-
-            concrete_reaction = ChemicalReaction()
-            concrete_reaction.AddReactantTemplate(RemoveHs(educt_))
-            concrete_reaction.AddProductTemplate(RemoveHs(product_))
-
-            # Copy reaction name, priority, and subset if available
-            if reaction.HasProp("_Name"):
-                concrete_reaction.SetProp("_Name", reaction.GetProp("_Name"))
-            if reaction.HasProp("_Priority"):
-                concrete_reaction.SetProp("_Priority", reaction.GetProp("_Priority"))
-            if reaction.HasProp("_Subset"):
-                concrete_reaction.SetProp("_Subset", reaction.GetProp("_Subset"))
-
-            reactions.append(concrete_reaction)
-
-        return reactions
-
     def react_one(self, mol: Mol) -> list[ChemicalReaction]:
         """
         Applies abstract reactions to a molecule to generate concrete reactions.
@@ -140,3 +81,65 @@ class Reactor:
             )
 
         return concrete_reactions
+def _to_concrete_reactions(
+    reaction: ChemicalReaction, educt: Mol
+) -> list[ChemicalReaction]:
+    """
+    Convert an abstract reaction to concrete reactions for a given educt.
+
+    This method applies the abstract reaction to the educt molecule and
+    generates all possible concrete reactions, filtering out duplicates
+    and invalid products. Importantly, the generated products may contain
+    multiple molecules.
+
+    Args:
+        reaction: Abstract chemical reaction
+        educt: Input molecule
+
+    Returns:
+        List of concrete reactions
+    """
+    # Generate all possible products from the reaction
+
+    # TODO: ensure there is only one reactant!
+
+    products = itertools.chain.from_iterable(reaction.RunReactants([AddHs(educt)]))
+
+    known_products = set()
+    reactions = []
+
+    for product in products:
+        # Sanitize the product molecule
+        try:
+            block = BlockLogs()
+            SanitizeMol(product)
+            del block
+        except Exception:
+            # Skip invalid products
+            continue
+
+        # Check for duplicate products using InChI
+        if (inchi := MolToInchi(product)) not in known_products:
+            known_products.add(inchi)
+        else:
+            continue
+
+        # Create concrete reaction
+        product_ = AddHs(product)
+        educt_ = Mol(educt)
+
+        concrete_reaction = ChemicalReaction()
+        concrete_reaction.AddReactantTemplate(RemoveHs(educt_))
+        concrete_reaction.AddProductTemplate(RemoveHs(product_))
+
+        # Copy reaction name, priority, and subset if available
+        if reaction.HasProp("_Name"):
+            concrete_reaction.SetProp("_Name", reaction.GetProp("_Name"))
+        if reaction.HasProp("_Priority"):
+            concrete_reaction.SetProp("_Priority", reaction.GetProp("_Priority"))
+        if reaction.HasProp("_Subset"):
+            concrete_reaction.SetProp("_Subset", reaction.GetProp("_Subset"))
+
+        reactions.append(concrete_reaction)
+
+    return reactions
