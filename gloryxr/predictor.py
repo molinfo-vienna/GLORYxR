@@ -9,9 +9,9 @@ from typing import Literal
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
-from sklearn.ensemble import RandomForestClassifier
 
-from gloryxr.reactor import Reactor
+from gloryxr._models import _LocalModelProvider, _ModelProvider
+from gloryxr.reactions import Reactor
 from gloryxr.should_be_in_fame3r import Fame3RVectorizer
 from gloryxr.utils import (
     extract_smiles_for_soms,
@@ -48,9 +48,8 @@ class MetabolitePredictor:
 
     def __init__(
         self,
-        models: dict[str, RandomForestClassifier],
-        reaction_subsets: dict[str, str],
         strict_soms: bool = False,
+        _models: type[_ModelProvider] = _LocalModelProvider,
     ) -> None:
         """
         Initialize the metabolite predictor.
@@ -60,8 +59,7 @@ class MetabolitePredictor:
             reaction_subsets: Dictionary mapping reaction names to rule subsets
             strict_soms: Whether to use strict SOMs
         """
-        self.models = models
-        self.reaction_subsets = reaction_subsets
+        self.model_provider = _models()
         self.vectorizer = Fame3RVectorizer().fit()
         self.reactor = Reactor(strict_soms=strict_soms)
 
@@ -131,8 +129,8 @@ class MetabolitePredictor:
         else:
             raise ValueError(f"Invalid priority: {priority}")
 
-        if subset in self.models:
-            som_probability = self.models[subset].predict_proba([descriptors])[0][-1]
-            return som_probability * priority_factor
-        else:
-            raise ValueError(f"Invalid reaction class: {subset}")
+        som_probability = self.model_provider.predict_proba(
+            subset=subset, descriptors=[descriptors]
+        )[0][-1]
+
+        return som_probability * priority_factor
