@@ -63,3 +63,19 @@ def extract_smiles_for_soms(mol: Mol) -> list[str]:
 
     return [MolToSmiles(mol) for mol in results]
 
+
+def mol_without_mappings(mol: Mol) -> Mol:
+    """
+    Remove atom mapping number information from a molecule.
+
+    Args:
+        mol: RDKit molecule object
+
+    Returns:
+        Copy of the given molecule with mapping information removed.
+    """
+    mol_ = Mol(mol)
+    for atom in mol_.GetAtoms():
+        atom.SetAtomMapNum(0)
+
+    return mol_
