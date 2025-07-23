@@ -14,8 +14,7 @@
    :maxdepth: 2
 
    source/tutorials/scripts
-   source/tutorials/predicting_metabolites
-.. source/tutorials/extending
+   source/tutorials/python_api
 
 .. toctree::
    :caption: Documentation
