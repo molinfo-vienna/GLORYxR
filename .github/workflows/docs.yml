@@ -24,7 +24,8 @@ jobs:
            enable-cache: true
       - run: uv sync
       - uses: actions/configure-pages@v5
-      - run: |
+      - name: Generate Sphinx documentation
+        run: |
            for tag in master $(git tag -l "v*"); do
              git checkout "$tag"
              uv --directory docs run sphinx-build -M html . _build/"$tag"
