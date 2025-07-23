@@ -3,6 +3,7 @@ name: Documentation
 on:
   push:
     branches: ["master"]
+    tags: ["*"]
 
 permissions:
   contents: read
@@ -22,10 +23,14 @@ jobs:
         with:
            enable-cache: true
       - uses: actions/configure-pages@v5
-      - run: uv --directory docs run sphinx-build -M html . _build
+      - run: |
+           for tag in master $(git tag -l "v*"); do
+             git checkout "$tag"
+             uv --directory docs run sphinx-build -M html . _build/"$tag"
+           done
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/_build/html
+          path: ./docs/_build
 
   deploy-pages:
     needs: build-sphinx
