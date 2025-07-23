@@ -151,8 +151,6 @@ def main():
     )
     print(f"Saved metabolites to SDF: {len(test_metabolites_df)} metabolite entries")
 
-    return test_df, test_metabolites_df
-
 
 if __name__ == "__main__":
-    test_df, test_metabolites_df = main()
+    main()

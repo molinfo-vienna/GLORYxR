@@ -175,8 +175,6 @@ def main():
         f"Saved metabolites to SDF: {len(reference_metabolites_df)} metabolite entries"
     )
 
-    return reference_df, reference_metabolites_df
-
 
 if __name__ == "__main__":
-    reference_df, reference_metabolites_df = main()
+    main()
