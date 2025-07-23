@@ -22,6 +22,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
            enable-cache: true
+      - run: uv sync
       - uses: actions/configure-pages@v5
       - run: |
            for tag in master $(git tag -l "v*"); do

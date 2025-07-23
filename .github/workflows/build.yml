@@ -15,4 +15,5 @@ jobs:
     - uses: astral-sh/setup-uv@v6
       with:
         enable-cache: true
+    - run: uv sync
     - run: uv run python -m build
