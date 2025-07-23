@@ -1,5 +1,5 @@
 """
-Main class for metabolite prediction using GLORYxR.
+Metabolite prediction using GLORYxR.
 """
 
 import itertools
@@ -36,17 +36,31 @@ class Prediction:
 
     @property
     def educt(self) -> Mol:
+        """Educt molecule of the predicted reaction."""
         return self.concrete_reaction.GetReactants()[0]
 
     @property
     def product(self) -> Mol:
+        """Product molecule of the predicted reaction."""
         return self.concrete_reaction.GetProducts()[0]
 
     def get_educt_smiles(self, clean: bool = True) -> str:
+        """
+        Generate SMILES string for the educt of the predicted reaction.
+
+        Args:
+           clean: Whether to remove mapping information from the returned SMILES
+        """
         mol = mol_without_mappings(self.educt) if clean else self.educt
         return MolToSmiles(mol, ignoreAtomMapNumbers=True)
 
     def get_product_smiles(self, clean: bool = True) -> str:
+        """
+        Generate SMILES string for the product of the predicted reaction.
+
+        Args:
+           clean: Whether to remove mapping information from the returned SMILES
+        """
         mol = mol_without_mappings(self.product) if clean else self.product
         return MolToSmiles(mol, ignoreAtomMapNumbers=True)
 
@@ -69,14 +83,26 @@ class MetabolitePredictor:
         self.vectorizer = Fame3RVectorizer().fit()
         self.reactor = Reactor(strict_soms=strict_soms)
 
-    def predict_molecules(self, educts: list[Mol]) -> list[Prediction]:
+    def predict(self, mols: list[Mol]) -> list[Prediction]:
+        """
+        Generate metabolism predictions for a list of molecules.
+
+        Args:
+            mols: List of molecules to perform metabolism prediction for
+        """
         predictions = itertools.chain.from_iterable(
-            (self.predict_one(educt) for educt in educts)
+            (self.predict_one(mol) for mol in mols)
         )
 
         return list(predictions)
 
-    def predict_one(self, educt: Mol) -> list[Prediction]:
+    def predict_one(self, mol: Mol) -> list[Prediction]:
+        """
+        Generate metabolism predictions for a single molecule.
+
+        Args:
+            mol: Molecule to perform metabolism prediction for
+        """
         predictions = [
             Prediction(
                 concrete_reaction=concrete_reaction,
@@ -86,7 +112,7 @@ class MetabolitePredictor:
                     concrete_reaction.GetProp("_Subset"),
                 ),
             )
-            for concrete_reaction in self.reactor.react_one(educt)
+            for concrete_reaction in self.reactor.react_one(mol)
         ]
 
         # Deduplicate predicted products
