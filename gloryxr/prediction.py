@@ -21,50 +21,6 @@ from gloryxr.utils import (
 __all__ = ["GLORYxR", "Prediction"]
 
 
-@dataclass
-class Prediction:
-    """
-    Class that encapsulates a single reaction prediction.
-
-    Args:
-        concrete_reaction: The specific reaction that was predicted.
-        score: The probability score of the predicted reaction, relative to other reactions.
-    """
-
-    concrete_reaction: ChemicalReaction
-    score: float
-
-    @property
-    def educt(self) -> Mol:
-        """Educt molecule of the predicted reaction."""
-        return self.concrete_reaction.GetReactants()[0]
-
-    @property
-    def product(self) -> Mol:
-        """Product molecule of the predicted reaction."""
-        return self.concrete_reaction.GetProducts()[0]
-
-    def get_educt_smiles(self, clean: bool = True) -> str:
-        """
-        Generate SMILES string for the educt of the predicted reaction.
-
-        Args:
-           clean: Whether to remove mapping information from the returned SMILES
-        """
-        mol = mol_without_mappings(self.educt) if clean else self.educt
-        return MolToSmiles(mol, ignoreAtomMapNumbers=True)
-
-    def get_product_smiles(self, clean: bool = True) -> str:
-        """
-        Generate SMILES string for the product of the predicted reaction.
-
-        Args:
-           clean: Whether to remove mapping information from the returned SMILES
-        """
-        mol = mol_without_mappings(self.product) if clean else self.product
-        return MolToSmiles(mol, ignoreAtomMapNumbers=True)
-
-
 class GLORYxR:
     """
     Main class for metabolite prediction using GLORYxR.
@@ -83,7 +39,7 @@ class GLORYxR:
         self.vectorizer = Fame3RVectorizer().fit()
         self.reactor = Reactor(strict_soms=strict_soms)
 
-    def predict(self, mols: list[Mol]) -> list[Prediction]:
+    def predict(self, mols: list[Mol]) -> list["Prediction"]:
         """
         Generate metabolism predictions for a list of molecules.
 
@@ -96,7 +52,7 @@ class GLORYxR:
 
         return list(predictions)
 
-    def predict_one(self, mol: Mol) -> list[Prediction]:
+    def predict_one(self, mol: Mol) -> list["Prediction"]:
         """
         Generate metabolism predictions for a single molecule.
 
@@ -162,3 +118,47 @@ class GLORYxR:
         )[0][-1]
 
         return som_probability * priority_factor
+
+
+@dataclass
+class Prediction:
+    """
+    Class that encapsulates a single reaction prediction.
+
+    Args:
+        concrete_reaction: The specific reaction that was predicted.
+        score: The probability score of the predicted reaction, relative to other reactions.
+    """
+
+    concrete_reaction: ChemicalReaction
+    score: float
+
+    @property
+    def educt(self) -> Mol:
+        """Educt molecule of the predicted reaction."""
+        return self.concrete_reaction.GetReactants()[0]
+
+    @property
+    def product(self) -> Mol:
+        """Product molecule of the predicted reaction."""
+        return self.concrete_reaction.GetProducts()[0]
+
+    def get_educt_smiles(self, clean: bool = True) -> str:
+        """
+        Generate SMILES string for the educt of the predicted reaction.
+
+        Args:
+           clean: Whether to remove mapping information from the returned SMILES
+        """
+        mol = mol_without_mappings(self.educt) if clean else self.educt
+        return MolToSmiles(mol, ignoreAtomMapNumbers=True)
+
+    def get_product_smiles(self, clean: bool = True) -> str:
+        """
+        Generate SMILES string for the product of the predicted reaction.
+
+        Args:
+           clean: Whether to remove mapping information from the returned SMILES
+        """
+        mol = mol_without_mappings(self.product) if clean else self.product
+        return MolToSmiles(mol, ignoreAtomMapNumbers=True)

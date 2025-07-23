@@ -64,6 +64,7 @@ html_css_files = ["fix_theme_toggle.css"]
 
 # -- Options for AutoDoc and Sphinx Python handling --------------------------
 
+autodoc_member_order = 'bysource'
 autodoc_typehints_format = "short"
 python_use_unqualified_type_names = True
 
