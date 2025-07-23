@@ -50,3 +50,6 @@ include = ["gloryxr"]
 
 [tool.pyright]
 typeCheckingMode = "basic"
+
+[tool.ruff.lint]
+extend-select = ["I"]
