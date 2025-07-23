@@ -14,13 +14,3 @@ wheels/
 
 # Jupyter stuff
 .ipynb_checkpoints
-
-# Data to retrain FAME3R models
-MetaQSAR_data/
-
-# Trained FAME3R models
-models/
-
-# Debugging
-debug/
-sandbox.sdf
