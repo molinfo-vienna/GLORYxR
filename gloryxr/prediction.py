@@ -18,7 +18,7 @@ from gloryxr.utils import (
     mol_without_mappings,
 )
 
-__all__ = ["Prediction", "MetabolitePredictor"]
+__all__ = ["GLORYxR", "Prediction"]
 
 
 @dataclass
@@ -65,7 +65,7 @@ class Prediction:
         return MolToSmiles(mol, ignoreAtomMapNumbers=True)
 
 
-class MetabolitePredictor:
+class GLORYxR:
     """
     Main class for metabolite prediction using GLORYxR.
 
