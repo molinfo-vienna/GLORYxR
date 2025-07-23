@@ -1,2 +1,2 @@
-Using Our Provided Scripts
+Using the Provided Scripts
 ==========================
