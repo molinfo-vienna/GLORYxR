@@ -27,7 +27,7 @@ jobs:
       with:
         enable-cache: true
     - run: uv sync
-    - run: uv run ruff format . --check
+    - run: uv run ruff format . --diff
 
   types:
     name: Types
