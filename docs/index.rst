@@ -1,5 +1,4 @@
-.. include:: ../README.md
-   :parser: myst_parser.sphinx_
+.. include:: ../README.rst
 
 .. toctree::
    :caption: Information
@@ -27,7 +26,7 @@
    API index <modindex>
 
 Indices and search
-******************
+------------------
 
 * :ref:`Alphabetical Index <genindex>`
 * :ref:`modindex`
