@@ -28,7 +28,7 @@ class Fame3RVectorizer(BaseEstimator, TransformerMixin, _SetOutputMixin):
 
     def transform(self, X: Any):
         check_is_fitted(self)
-        check_array(X, dtype="str", estimator=Fame3RVectorizer)
+        X = check_array(X, dtype="str", estimator=Fame3RVectorizer)
 
         return np.apply_along_axis(lambda row: self.transform_one(row[0]), 1, X)
 
