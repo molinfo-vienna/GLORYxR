@@ -13,7 +13,7 @@ class _ModelProvider(ABC):
         self,
         subset: str,
         descriptors: npt.ArrayLike,
-    ) -> npt.NDArray[np.float_]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
 
 class _LocalModelProvider(_ModelProvider):
@@ -29,5 +29,5 @@ class _LocalModelProvider(_ModelProvider):
         self,
         subset: str,
         descriptors: npt.ArrayLike,
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         return self.models[subset].predict_proba(descriptors)
