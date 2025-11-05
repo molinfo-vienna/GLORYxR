@@ -1,7 +1,7 @@
 import json
 
 import pandas as pd
-from rdkit.Chem import PandasTools
+from rdkit.Chem import PandasTools  # type:ignore
 from rdkit.Chem.rdmolfiles import MolFromSmiles
 
 

@@ -31,11 +31,12 @@ docs = [
     "sphinx-book-theme>=1.1.4",
     "sphinx-copybutton>=0.5.2",
 ]
-full = [
+full = [ # maybe this needs to go to optional dependencies?
     "molvs>=0.1.1",
     "pandas>=2.3.0",
     "tqdm>=4.67.1",
     "scikit-learn>=1.7.0",
+    # "httpx>=0.28.1",
 ]
 dev = [
     "fame3r[cli]",
@@ -55,8 +56,15 @@ include = ["gloryxr"]
 [tool.hatch.build.targets.wheel]
 include = ["gloryxr"]
 
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
 [tool.pyright]
 typeCheckingMode = "basic"
+exclude = [".venv", "**/*.ipynb"]
 
 [tool.ruff.lint]
 extend-select = ["I"]

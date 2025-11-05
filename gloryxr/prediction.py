@@ -6,13 +6,13 @@ import itertools
 from dataclasses import dataclass
 from typing import Literal
 
+from fame3r import FAME3RVectorizer
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
 from gloryxr._models import _LocalModelProvider, _ModelProvider
 from gloryxr.reactions import Reactor
-from fame3r import FAME3RVectorizer
 from gloryxr.utils import (
     extract_smiles_for_soms,
     mol_without_mappings,
