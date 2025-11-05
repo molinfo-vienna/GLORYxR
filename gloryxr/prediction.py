@@ -12,7 +12,7 @@ from rdkit.Chem.rdmolfiles import MolToSmiles
 
 from gloryxr._models import _LocalModelProvider, _ModelProvider
 from gloryxr.reactions import Reactor
-from gloryxr.should_be_in_fame3r import Fame3RVectorizer
+from fame3r import FAME3RVectorizer
 from gloryxr.utils import (
     extract_smiles_for_soms,
     mol_without_mappings,
@@ -36,7 +36,7 @@ class GLORYxR:
         _models: type[_ModelProvider] = _LocalModelProvider,
     ) -> None:
         self.model_provider = _models()
-        self.vectorizer = Fame3RVectorizer().fit()
+        self.vectorizer = FAME3RVectorizer().fit()
         self.reactor = Reactor(strict_soms=strict_soms)
 
     def predict(self, mols: list[Mol]) -> list["Prediction"]:
@@ -97,7 +97,7 @@ class GLORYxR:
     ) -> float:
         som_smiles = extract_smiles_for_soms(marked_educt)
         descriptors = [
-            self.vectorizer.transform_one(som_smile) for som_smile in som_smiles
+            self.vectorizer.transform_one([som_smile]) for som_smile in som_smiles
         ]
         scores = [self._get_prediction_score(d, priority, subset) for d in descriptors]
 

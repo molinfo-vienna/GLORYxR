@@ -16,7 +16,7 @@ authors = [
 
 dependencies = [
     "cdpkit>=1.2.3",
-    "fame3r>=1.0.3",
+    "fame3r>=2.0.0",
     "rdkit>=2025.3.3",
 ]
 
@@ -38,6 +38,7 @@ full = [
     "scikit-learn>=1.7.0",
 ]
 dev = [
+    "fame3r[cli]",
     "basedpyright>=1.29.4",
     "jupyter>=1.1.1",
     "jupyter-ruff>=0.3.0",
