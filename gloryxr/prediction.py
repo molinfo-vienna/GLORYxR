@@ -32,12 +32,16 @@ class GLORYxR:
     def __init__(
         self,
         *,
+        phase: Literal[1, 2, 3] = 3,  # 3 being both phases
         strict_soms: bool = False,
         _models: type[_ModelProvider] = _LocalModelProvider,
     ) -> None:
-        self.model_provider = _models()
+        if phase not in {1, 2, 3}:
+            raise ValueError(f"Invalid phase: {phase}. Must be 1, 2, or 3.")
+        
+        self.model_provider = _models(phase=phase)
         self.vectorizer = FAME3RVectorizer().fit()
-        self.reactor = Reactor(strict_soms=strict_soms)
+        self.reactor = Reactor(phase=phase, strict_soms=strict_soms)
 
     def predict(self, mols: list[Mol]) -> list["Prediction"]:
         """

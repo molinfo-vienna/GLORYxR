@@ -41,8 +41,10 @@ full = [ # maybe this needs to go to optional dependencies?
 dev = [
     "fame3r[cli]",
     "basedpyright>=1.29.4",
+    "ipykernel>=7.1.0",
     "jupyter>=1.1.1",
     "jupyter-ruff>=0.3.0",
+    "matplotlib>=3.10.8",
     "ruff>=0.11.13",
     { include-group = "build" },
     { include-group = "tests" },

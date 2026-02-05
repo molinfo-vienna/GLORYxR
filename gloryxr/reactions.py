@@ -30,9 +30,11 @@ class Reactor:
 
     Args:
         strict_soms: Whether to use strict SOM validation
+        phase: Metabolism phase (1, 2, or 3 for both)
     """
 
-    def __init__(self, strict_soms: bool = False) -> None:
+    def __init__(self, phase: int, strict_soms: bool = False) -> None:
+        self.phase: int = phase
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = []
 
@@ -43,6 +45,12 @@ class Reactor:
         """Load abstract reaction rules from the CSV file."""
         with _rules_data.joinpath("gloryx_reactionrules.csv").open() as f:
             for row in csv.DictReader(f):
+                if self.phase == 1:
+                    if "phase 1" not in row["Name of rule subset"].lower():
+                        continue
+                elif self.phase == 2:
+                    if "phase 2" not in row["Name of rule subset"].lower():
+                        continue
                 reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
                 reaction.SetProp("_Name", row["Reaction name"])
                 reaction.SetProp("_Priority", row["Priority level"])
