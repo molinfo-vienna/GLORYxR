@@ -1,0 +1,27 @@
+description,frequency,smarts
+Hydroxylation,12732,[*:1]>>[*:1]-[OH]
+Dealkylation,6996,[*:1]-C>>[*:1]
+Glucuronidation,5741,[*:1]>>[*:1]C1C(O)C(O)C(O)C(C(=O)O)O1
+Demethylation,3560,[*:1]-[CH3]>>[*:1]
+Reduction (double to single bond),3466,[*:1]=[*:2]>>[*:1]-[*:2]
+Oxidation (+=O),2905,[*:1]>>[*:1]=O
+Amide hydrolysis 1,2707,[N:1]-[C$(*=O):2]>> [*:1].[OH]-[*:2]
+Amide hydrolysis 2,0,[N:1]-[C$(*=O):2]>> [OH]-[*:2]
+Amide hydrolysis 3,0,[N:1]-[C$(*=O):2]>> [*:1]
+Conjugation,2400,[*:1]>>[*:1]-[#0]
+Oxidation (single to double bond),2218,[*:1]-!:[*:2]>>[*:1]=!:[*:2]
+Sulfation,1988,[*:1]>> [*:1]-S(=O)(=O)-O
+Ester hydrolysis 1,1971,[C:1](=[O:2])-[O:3]-[*:4]>>[C:1](=[O:2])-[OH].[OH:3]-[*:4]
+Ester hydrolysis 2,0,[C:1](=[O:2])-O-*>>[C:1](=[O:2])-[OH]
+Ester hydrolysis 3,0,C(=O)-[O:1]-[*:2]>>[OH:1]-[*:2]
+Methylation,1154,[*:1]>>[*:1]-[CH3]
+Dehalogenation,1115,"[*:1]-[I,Br,Cl,F]>>[*:1]"
+Dehydroxylation,1088,"[*:1]-[O;H,-]>>[*:1]"
+Epoxidation,1035,[*:1]=[*:2]>>[*:1](-O1)-[*:2]-1
+"Oxidation (=O,-OH)",1004,[*:1]>>[*:1](=O)-[OH]
+Acetylation,935,[*:1]>>[*:1]-C(=O)-[CH3]
+Phosphorylation,821,[*:1]>>[*:1]-P(=O)(-O)-O
+Tautomerization,720,[*:1]=[*:2]-[*:3]>>[*:1]-[*:2]=[*:3]
+Epoxide hydrolysis,701,[r:1]1-[r:1]-[Or:2]-1>>[*:1](-[OH])-[*:1]-[OH:2]
+Hydroxidation,681,[*:1]>>[*:1]-[O-]
+Oxidative deamination (=O),678,[*:1]-N>>[*:1]=O
