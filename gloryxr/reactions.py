@@ -43,7 +43,7 @@ class Reactor:
 
     def _load_reaction_rules(self) -> None:
         """Load abstract reaction rules from the CSV file."""
-        with _rules_data.joinpath("gloryx_reactionrules.csv").open() as f:
+        with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
             for row in csv.DictReader(f):
                 if self.phase == 1:
                     if "phase 1" not in row["Name of rule subset"].lower():
@@ -125,6 +125,7 @@ def _to_concrete_reactions(
         try:
             block = BlockLogs()
             SanitizeMol(product)
+            product = RemoveHs(product)
             del block
         except Exception:
             # Skip invalid products
@@ -137,12 +138,9 @@ def _to_concrete_reactions(
             continue
 
         # Create concrete reaction
-        product_ = AddHs(product)
-        educt_ = Mol(educt)
-
         concrete_reaction = ChemicalReaction()
-        concrete_reaction.AddReactantTemplate(RemoveHs(educt_))
-        concrete_reaction.AddProductTemplate(RemoveHs(product_))
+        concrete_reaction.AddReactantTemplate(Mol(educt))
+        concrete_reaction.AddProductTemplate(product)
 
         # Copy reaction name, priority, and subset if available
         if reaction.HasProp("_Name"):

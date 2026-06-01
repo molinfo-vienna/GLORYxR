@@ -38,7 +38,7 @@ class GLORYxR:
     ) -> None:
         if phase not in {1, 2, 3}:
             raise ValueError(f"Invalid phase: {phase}. Must be 1, 2, or 3.")
-        
+
         self.model_provider = _models(phase=phase)
         self.vectorizer = FAME3RVectorizer().fit()
         self.reactor = Reactor(phase=phase, strict_soms=strict_soms)
