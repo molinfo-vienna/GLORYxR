@@ -12,7 +12,7 @@ from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
 from gloryxr._models import _LocalModelProvider, _ModelProvider
-from gloryxr.reactions import Reactor
+from gloryxr.reactions import Reactor, _load_reaction_rules
 from gloryxr.utils import (
     extract_smiles_for_soms,
     mol_without_mappings,
@@ -32,16 +32,15 @@ class GLORYxR:
     def __init__(
         self,
         *,
-        phase: Literal[1, 2, 3] = 3,  # 3 being both phases
+        phase: Literal["1", "2", "1+2"] = "1+2",
         strict_soms: bool = False,
         _models: type[_ModelProvider] = _LocalModelProvider,
     ) -> None:
-        if phase not in {1, 2, 3}:
-            raise ValueError(f"Invalid phase: {phase}. Must be 1, 2, or 3.")
-
-        self.model_provider = _models(phase=phase)
+        self.model_provider = _models()
         self.vectorizer = FAME3RVectorizer().fit()
-        self.reactor = Reactor(phase=phase, strict_soms=strict_soms)
+        self.reactor = Reactor(
+            reactions=_load_reaction_rules(phase), strict_soms=strict_soms
+        )
 
     def predict(self, mols: list[Mol]) -> list["Prediction"]:
         """

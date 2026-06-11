@@ -17,29 +17,11 @@ class _ModelProvider(ABC):
 
 
 class _LocalModelProvider(_ModelProvider):
-    def __init__(self, phase: int) -> None:
-        """
-        Initialize the local model provider.
-
-        Args:
-            phase: Metabolism phase (1, 2, or 3 for both)
-        """
-        models_path = Path("models")
-
+    def __init__(self) -> None:
         self.models: dict[str, Any] = {}
-        for model_path in models_path.glob("*.joblib"):
-            if phase == 3:
-                self.models[model_path.stem] = joblib.load(filename=model_path)
-            elif phase == 1:
-                if "phase 1" in model_path.stem.lower():
-                    self.models[model_path.stem] = joblib.load(
-                        filename=model_path
-                    )
-            elif phase == 2:
-                if "phase 2" in model_path.stem.lower():
-                    self.models[model_path.stem] = joblib.load(
-                        filename=model_path
-                    )
+
+        for model_path in Path("models").glob("*.joblib"):
+            self.models[model_path.stem] = joblib.load(filename=model_path)
 
     @override
     def predict_proba(

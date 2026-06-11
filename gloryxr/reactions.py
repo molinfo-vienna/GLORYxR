@@ -7,6 +7,7 @@ This module handles both abstract reaction management and concrete reaction gene
 import csv
 import importlib.resources
 import itertools
+from typing import Literal
 
 from rdkit.Chem.inchi import MolToInchi
 from rdkit.Chem.rdchem import Mol
@@ -21,53 +22,34 @@ __all__ = ["Reactor"]
 _rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 
 
+def _load_reaction_rules(phase: Literal["1", "2", "1+2"]) -> list[ChemicalReaction]:
+    abstract_reactions = []
+
+    with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
+        for row in csv.DictReader(f):
+            if phase == "1" and "phase 1" not in row["Name of rule subset"].lower():
+                continue
+            if phase == "2" and "phase 2" not in row["Name of rule subset"].lower():
+                continue
+
+            reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
+            reaction.SetProp("_Name", row["Reaction name"])
+            reaction.SetProp("_Priority", row["Priority level"])
+            reaction.SetProp("_Subset", row["Name of rule subset"])
+
+            abstract_reactions.append(reaction)
+
+        return abstract_reactions
+
+
 class Reactor:
-    """
-    Core chemical reaction processing engine for GLORYxR.
-
-    This class manages abstract reactions and provides methods to generate
-    concrete reactions from input molecules.
-
-    Args:
-        strict_soms: Whether to use strict SOM validation
-        phase: Metabolism phase (1, 2, or 3 for both)
-    """
-
-    def __init__(self, phase: int, strict_soms: bool = False) -> None:
-        self.phase: int = phase
+    def __init__(
+        self, reactions: list[ChemicalReaction], strict_soms: bool = False
+    ) -> None:
         self.strict_soms: bool = strict_soms
-        self.abstract_reactions: list[ChemicalReaction] = []
-
-        # Load reaction rules from CSV file
-        self._load_reaction_rules()
-
-    def _load_reaction_rules(self) -> None:
-        """Load abstract reaction rules from the CSV file."""
-        with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
-            for row in csv.DictReader(f):
-                if self.phase == 1:
-                    if "phase 1" not in row["Name of rule subset"].lower():
-                        continue
-                elif self.phase == 2:
-                    if "phase 2" not in row["Name of rule subset"].lower():
-                        continue
-                reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
-                reaction.SetProp("_Name", row["Reaction name"])
-                reaction.SetProp("_Priority", row["Priority level"])
-                reaction.SetProp("_Subset", row["Name of rule subset"])
-
-                self.abstract_reactions.append(reaction)
+        self.abstract_reactions: list[ChemicalReaction] = reactions
 
     def react_one(self, mol: Mol) -> list[ChemicalReaction]:
-        """
-        Applies abstract reactions to a molecule to generate concrete reactions.
-
-        Args:
-            mol: RDKit molecule object
-
-        Returns:
-            List of concrete reactions with SOM annotations
-        """
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
                 (
@@ -96,39 +78,19 @@ class Reactor:
 def _to_concrete_reactions(
     reaction: ChemicalReaction, educt: Mol
 ) -> list[ChemicalReaction]:
-    """
-    Convert an abstract reaction to concrete reactions for a given educt.
-
-    This method applies the abstract reaction to the educt molecule and
-    generates all possible concrete reactions, filtering out duplicates
-    and invalid products. Importantly, the generated products may contain
-    multiple molecules.
-
-    Args:
-        reaction: Abstract chemical reaction
-        educt: Input molecule
-
-    Returns:
-        List of concrete reactions
-    """
-    # Generate all possible products from the reaction
-
-    # TODO: ensure there is only one reactant!
-
+    # INFO: AddHs is very important for correct application of reactions
     products = itertools.chain.from_iterable(reaction.RunReactants([AddHs(educt)]))
 
     known_products = set()
     reactions = []
 
     for product in products:
-        # Sanitize the product molecule
         try:
             block = BlockLogs()
             SanitizeMol(product)
             product = RemoveHs(product)
             del block
         except Exception:
-            # Skip invalid products
             continue
 
         # Check for duplicate products using InChI
@@ -137,18 +99,12 @@ def _to_concrete_reactions(
         else:
             continue
 
-        # Create concrete reaction
         concrete_reaction = ChemicalReaction()
         concrete_reaction.AddReactantTemplate(Mol(educt))
         concrete_reaction.AddProductTemplate(product)
 
-        # Copy reaction name, priority, and subset if available
-        if reaction.HasProp("_Name"):
-            concrete_reaction.SetProp("_Name", reaction.GetProp("_Name"))
-        if reaction.HasProp("_Priority"):
-            concrete_reaction.SetProp("_Priority", reaction.GetProp("_Priority"))
-        if reaction.HasProp("_Subset"):
-            concrete_reaction.SetProp("_Subset", reaction.GetProp("_Subset"))
+        for name, value in reaction.GetPropsAsDict(includePrivate=True).items():
+            concrete_reaction.SetProp(name, value)
 
         reactions.append(concrete_reaction)
 
@@ -170,12 +126,8 @@ def _separate_reactions_for_products(
         split_reaction.AddReactantTemplate(combined_reaction.GetReactants()[0])
         split_reaction.AddProductTemplate(product)
 
-        if combined_reaction.HasProp("_Name"):
-            split_reaction.SetProp("_Name", combined_reaction.GetProp("_Name"))
-        if combined_reaction.HasProp("_Priority"):
-            split_reaction.SetProp("_Priority", combined_reaction.GetProp("_Priority"))
-        if combined_reaction.HasProp("_Subset"):
-            split_reaction.SetProp("_Subset", combined_reaction.GetProp("_Subset"))
+        for name, value in combined_reaction.GetPropsAsDict(includePrivate=True).items():
+            split_reaction.SetProp(name, value)
 
         results.append(split_reaction)
 
