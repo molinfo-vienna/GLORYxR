@@ -126,7 +126,9 @@ def _separate_reactions_for_products(
         split_reaction.AddReactantTemplate(combined_reaction.GetReactants()[0])
         split_reaction.AddProductTemplate(product)
 
-        for name, value in combined_reaction.GetPropsAsDict(includePrivate=True).items():
+        for name, value in combined_reaction.GetPropsAsDict(
+            includePrivate=True
+        ).items():
             split_reaction.SetProp(name, value)
 
         results.append(split_reaction)
