@@ -11,7 +11,7 @@ from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
 from gloryxr.models import ModelProvider
-from gloryxr.reactions import Reactor, _load_reaction_rules
+from gloryxr.reactions import Reactor
 from gloryxr.utils import mol_without_mappings
 
 __all__ = ["GLORYxR", "Prediction"]
@@ -29,13 +29,10 @@ class GLORYxR:
         self,
         *,
         models: ModelProvider,
-        phase: Literal["1", "2", "1+2"] = "1+2",
-        strict_soms: bool = False,
+        reactor: Reactor,
     ) -> None:
         self.model_provider = models
-        self.reactor = Reactor(
-            reactions=_load_reaction_rules(phase), strict_soms=strict_soms
-        )
+        self.reactor = reactor
 
     def predict(self, mols: list[Mol]) -> list["Prediction"]:
         """

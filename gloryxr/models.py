@@ -5,7 +5,6 @@ from typing import Any, Literal, override
 
 import joblib
 import numpy as np
-import numpy.typing as npt
 from fame3r import FAME3RVectorizer
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
@@ -13,16 +12,29 @@ from rdkit.Chem.rdmolfiles import MolToSmiles
 
 from gloryxr.utils import extract_smiles_for_soms
 
+__all__ = ["ModelProvider", "LocalFAME3RModelProvider"]
+
 
 class ModelProvider(ABC):
+    """Base class for GLORYxR model providers"""
+
     @abstractmethod
     def predict_proba(
         self,
         reactions: list[ChemicalReaction],
-    ) -> npt.NDArray[np.float64]: ...
+    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        """Predict probabilities for a list of metabolism reactions, tagged with SOMs."""
+        ...
 
 
 class LocalFAME3RModelProvider(ModelProvider):
+    """A model provider that loads a family of reaction-class specific FAME3R models.
+
+    This when used with our proivided FAME3R models, predictions
+    generated using this class will closely follow the behavior of the
+    original GLORYx paper.
+    """
+
     def __init__(self, model_path: PathLike[str] | str) -> None:
         self.models: dict[str, Any] = {}
         self.vectorizer = FAME3RVectorizer().fit()
@@ -38,7 +50,7 @@ class LocalFAME3RModelProvider(ModelProvider):
     def predict_proba(
         self,
         reactions: list[ChemicalReaction],
-    ) -> npt.NDArray[np.float64]:
+    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         results = []
 
         for rxn in reactions:

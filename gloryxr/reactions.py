@@ -7,7 +7,7 @@ This module handles both abstract reaction management and concrete reaction gene
 import csv
 import importlib.resources
 import itertools
-from typing import Literal
+from typing import Literal, Self
 
 from rdkit.Chem.inchi import MolToInchi
 from rdkit.Chem.rdchem import Mol
@@ -22,32 +22,45 @@ __all__ = ["Reactor"]
 _rules_data = importlib.resources.files("gloryxr").joinpath("rules_data")
 
 
-def _load_reaction_rules(phase: Literal["1", "2", "1+2"]) -> list[ChemicalReaction]:
-    abstract_reactions = []
-
-    with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
-        for row in csv.DictReader(f):
-            if phase == "1" and "phase 1" not in row["Name of rule subset"].lower():
-                continue
-            if phase == "2" and "phase 2" not in row["Name of rule subset"].lower():
-                continue
-
-            reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
-            reaction.SetProp("_Name", row["Reaction name"])
-            reaction.SetProp("_Priority", row["Priority level"])
-            reaction.SetProp("_Subset", row["Name of rule subset"])
-
-            abstract_reactions.append(reaction)
-
-        return abstract_reactions
-
-
 class Reactor:
+    """
+    Main class for applying reactions with GLORYxR.
+    """
+
     def __init__(
         self, reactions: list[ChemicalReaction], strict_soms: bool = False
     ) -> None:
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = reactions
+
+    @classmethod
+    def load_builtin(
+        cls, phase: Literal["1", "2", "1+2"], strict_soms: bool = False
+    ) -> Self:
+        """
+        Load a reactor with one of the built-in sets of metabolism reactions.
+
+        Args:
+           phase: {"1", "2", "1+2"} Phase-subset of reactions that should be loaded
+           strict_soms: Whether to perform stricter SOM tagging
+        """
+        abstract_reactions = []
+
+        with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
+            for row in csv.DictReader(f):
+                if phase == "1" and "phase 1" not in row["Name of rule subset"].lower():
+                    continue
+                if phase == "2" and "phase 2" not in row["Name of rule subset"].lower():
+                    continue
+
+                reaction: ChemicalReaction = ReactionFromSmarts(row["SMIRKS"])
+                reaction.SetProp("_Name", row["Reaction name"])
+                reaction.SetProp("_Priority", row["Priority level"])
+                reaction.SetProp("_Subset", row["Name of rule subset"])
+
+                abstract_reactions.append(reaction)
+
+        return cls(abstract_reactions, strict_soms)
 
     def react_one(self, mol: Mol) -> list[ChemicalReaction]:
         concrete_reactions: list[ChemicalReaction] = list(
