@@ -80,12 +80,17 @@ class Reactor:
                 strict_soms=self.strict_soms,
             )
 
-        return list(
-            itertools.chain.from_iterable(
-                _separate_reactions_for_products(concrete_reaction)
-                for concrete_reaction in concrete_reactions
-            )
+        separated_reactions = itertools.chain.from_iterable(
+            _separate_reactions_for_products(concrete_reaction)
+            for concrete_reaction in concrete_reactions
         )
+
+        # Filter out products with less than 3 heavy atoms
+        return [
+            rxn
+            for rxn in separated_reactions
+            if rxn.GetProductTemplate(0).GetNumHeavyAtoms() >= 3
+        ]
 
 
 def _to_concrete_reactions(

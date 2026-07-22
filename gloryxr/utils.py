@@ -2,6 +2,8 @@
 Utility functions for GLORYxR metabolite prediction.
 """
 
+
+from rdkit.Chem import Draw
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
@@ -81,3 +83,35 @@ def mol_without_mappings(mol: Mol) -> Mol:
         atom.SetAtomMapNum(0)
 
     return mol_
+
+
+class MetabolismReaction(ChemicalReaction):
+    def _repr_svg_(self):
+        return Draw.ReactionToImage(
+            self,
+            useSVG=True,
+            highlightByReactant=True,
+            highlightColorsReactants=[(1, 0.502, 0.502)],
+        )
+
+    def _repr_png_(self):
+        return Draw.ReactionToImage(
+            self,
+            returnPNG=True,
+            highlightByReactant=True,
+            highlightColorsReactants=[(1, 0.502, 0.502)],
+        )
+
+    def _repr_html_(self):
+        prop_rows = [
+            f'<tr><th>{key}</th><td style="text-align: left">{value}</td></tr>'
+            for key, value in self.GetPropsAsDict(includePrivate=True).items()
+        ]
+
+        return (
+            "<div><table><tbody><tr><td colspan=2>"
+            + self._repr_svg_()
+            + "</td></tr>"
+            + "".join(prop_rows)
+            + "</tbody></table></div>"
+        )

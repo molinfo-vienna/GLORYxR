@@ -14,8 +14,8 @@ def test_predictions_as_expected(snapshot: SnapshotAssertion):
         reactor=Reactor.load_builtin(phase="1+2"),
         models=LocalFAME3RModelProvider("models"),
     )
-    predictions = gloryxr.predict_one(PARACETAMOL)
+    reactions = gloryxr.predict_one(PARACETAMOL)
 
     assert [
-        (ReactionToSmarts(p.concrete_reaction), p.score) for p in predictions
+        (ReactionToSmarts(rxn), rxn.GetDoubleProp("Score")) for rxn in reactions
     ] == snapshot
