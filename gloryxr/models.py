@@ -61,10 +61,15 @@ class LocalFAME3RModelProvider(ModelProvider):
                 priority_factor = 1.0
             subset = rxn.GetProp("_Subset")
 
-            reactive_atoms = np.array(
-                extract_smiles_for_soms(rxn.GetReactantTemplate(0))
-            ).reshape(-1, 1)
-            descriptors = self.vectorizer.transform(reactive_atoms)
+            reactive_atoms = extract_smiles_for_soms(rxn.GetReactantTemplate(0))
+            if len(reactive_atoms) == 0:
+                # TODO: fix this using rules
+                results.append(np.nan)
+                continue
+
+            descriptors = self.vectorizer.transform(
+                np.array(reactive_atoms).reshape(-1, 1)
+            )
             predictions = self.models[subset].predict_proba(descriptors)
 
             results.append(predictions[:, -1].max() * priority_factor)
