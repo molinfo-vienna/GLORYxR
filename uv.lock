@@ -272,7 +272,7 @@ wheels = [
 [[package]]
 name = "awesom"
 version = "3.0.0"
-source = { directory = "../aweSOM" }
+source = { git = "https://github.com/molinfo-vienna/aweSOM#3acd6ff6a3a663f15a543090da805977a8d61e73" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
@@ -285,39 +285,6 @@ dependencies = [
     { name = "torch-geometric" },
     { name = "torchmetrics" },
     { name = "tqdm" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "matplotlib", specifier = ">=3.10.9" },
-    { name = "nerdd-link", marker = "extra == 'nerdd'", specifier = ">=0.5.15" },
-    { name = "nerdd-module", marker = "extra == 'nerdd'", specifier = ">=0.3.52" },
-    { name = "numpy", specifier = ">=1.26.4" },
-    { name = "optuna", specifier = ">=4.1.0" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "rdkit", specifier = ">=2023.3.3" },
-    { name = "scikit-learn", specifier = ">=1.6.1" },
-    { name = "tensorboard", specifier = ">=2.18.0" },
-    { name = "torch", specifier = ">=2.5.1" },
-    { name = "torch-geometric", specifier = ">=2.6.1" },
-    { name = "torchmetrics", specifier = ">=1.0.3" },
-    { name = "tqdm", specifier = ">=4.64.0" },
-    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.16.0" },
-]
-provides-extras = ["cli", "nerdd"]
-
-[package.metadata.requires-dev]
-build = [{ name = "build" }]
-ci = [
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "ruff", specifier = ">=0.15.16" },
-    { name = "ty", specifier = ">=0.0.46" },
-]
-dev = [
-    { name = "build" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "ruff", specifier = ">=0.15.16" },
-    { name = "ty", specifier = ">=0.0.46" },
 ]
 
 [[package]]
@@ -915,6 +882,7 @@ name = "gloryxr"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "awesom" },
     { name = "cdpkit" },
     { name = "fame3r" },
     { name = "rdkit" },
@@ -958,7 +926,8 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "awesom", marker = "extra == 'awesom'", directory = "../aweSOM" },
+    { name = "awesom", git = "https://github.com/molinfo-vienna/aweSOM" },
+    { name = "awesom", marker = "extra == 'awesom'", git = "https://github.com/molinfo-vienna/aweSOM" },
     { name = "cdpkit", specifier = ">=1.2.3" },
     { name = "fame3r", specifier = ">=2.0.0" },
     { name = "rdkit", specifier = ">=2025.3.3" },

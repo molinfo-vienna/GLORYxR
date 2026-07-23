@@ -68,4 +68,4 @@ exclude = [".venv", "**/*.ipynb"]
 extend-select = ["I"]
 
 [tool.uv.sources]
-awesom = { path = "../aweSOM" }
+awesom = { git = "https://github.com/molinfo-vienna/aweSOM" }
