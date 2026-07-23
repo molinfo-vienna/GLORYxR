@@ -27,12 +27,12 @@ class ModelProvider(ABC):
         ...
 
 
-class LocalFAME3RModelProvider(ModelProvider):
-    """A model provider that loads a family of reaction-class specific FAME3R models.
+class MultiFAME3RModelProvider(ModelProvider):
+    """A model provider for a family of reaction-class specific FAME3R models.
 
     This when used with our proivided FAME3R models, predictions
-    generated using this class will closely follow the behavior of the
-    original GLORYx paper.
+    generated using this class will closely follow those provided by the
+    original GLORYx implementation.
     """
 
     def __init__(self, model_path: PathLike[str] | str) -> None:
