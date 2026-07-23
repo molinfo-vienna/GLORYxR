@@ -10,13 +10,7 @@ wheels/
 .venv
 
 # VSCode stuff
-.vscode/
+.vscode
 
 # Jupyter stuff
 .ipynb_checkpoints
-
-# Training data for FAME models
-datasets/MetaQSAR_data/
-
-# Trained FAME models
-models/
