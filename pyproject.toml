@@ -20,6 +20,9 @@ dependencies = [
     "rdkit>=2025.3.3",
 ]
 
+[project.optional-dependencies]
+awesom = ["awesom"]
+
 [dependency-groups]
 build = ["build"]
 tests = [
@@ -63,3 +66,6 @@ exclude = [".venv", "**/*.ipynb"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
+
+[tool.uv.sources]
+awesom = { path = "../aweSOM" }
