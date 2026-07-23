@@ -53,10 +53,10 @@ dev = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["gloryxr"]
+only-include = ["src/gloryxr"]
 
 [tool.hatch.build.targets.wheel]
-include = ["gloryxr"]
+packages = ["src/gloryxr"]
 
 
 [tool.pytest.ini_options]
