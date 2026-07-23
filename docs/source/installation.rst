@@ -9,4 +9,4 @@ For example, you could install the tool as shown below.
 .. code-block:: bash
 
    git clone https://github.com/molinfo-vienna/GLORYxR
-   pip install ./GLORYXR
+   pip install ./GLORYxR
