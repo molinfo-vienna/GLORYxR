@@ -30,11 +30,11 @@ Unless otherwise noted, all files in this directory and all subdirectories are d
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/gloryxr.svg
    :target: https://pypi.python.org/pypi/gloryxr
-   :alt: Pypi Version
+   :alt: PyPi Version
 
 .. |conda-version| image:: https://img.shields.io/conda/vn/conda-forge/gloryxr.svg
     :target: https://anaconda.org/conda-forge/gloryxr
-    :alt: Conda-forge version
+    :alt: conda-forge version
 
 .. |build| image:: https://img.shields.io/github/actions/workflow/status/molinfo-vienna/GLORYxR/build.yml?label=build
     :target: https://github.com/molinfo-vienna/GLORYxR/actions/workflows/build.yml
