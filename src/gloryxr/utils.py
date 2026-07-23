@@ -1,43 +1,13 @@
 """
-Utility functions for GLORYxR metabolite prediction.
+Utility functions and classes for GLORYxR metabolite prediction.
 """
-
 
 from rdkit.Chem import Draw
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
-__all__ = ["reactions_to_table", "extract_smiles_for_soms", "mol_without_mappings"]
-
-# We import pandas inside of the function so that the package may
-# continue working without a hard dependency on pandas.
-
-
-def reactions_to_table(
-    reactions: list[ChemicalReaction],
-) -> "pandas.DataFrame":  # pyright: ignore[reportUndefinedVariable] # noqa: F821
-    """
-    Convert chemical reactions to a pandas DataFrame.
-
-    Args:
-        reactions: Iterable of chemical reactions
-
-    Returns:
-        DataFrame with Educt, Product, and Reaction columns, as well as additional columns for certain reaction properties.
-    """
-    import pandas as pd
-
-    return pd.DataFrame(
-        [
-            {
-                "Educt": reaction.GetReactants()[0],
-                "Product": reaction.GetProducts()[0],
-            }
-            | reaction.GetPropsAsDict(includePrivate=True)
-            for reaction in reactions
-        ]
-    ).rename_axis("ID")
+__all__ = ["extract_smiles_for_soms", "mol_without_mappings", "MetabolismReaction"]
 
 
 def extract_smiles_for_soms(mol: Mol) -> list[str]:
@@ -86,6 +56,15 @@ def mol_without_mappings(mol: Mol) -> Mol:
 
 
 class MetabolismReaction(ChemicalReaction):
+    """Transparent wrapper class around :class:`~rdkit.Chem.rdChemReactions.ChemicalReaction`.
+
+    This class can be used in place of a plain
+    :class:`~rdkit.Chem.rdChemReactions.ChemicalReaction`, but provides
+    better display handling in Jupyter sessions and similar
+    environments.
+
+    """
+
     def _repr_svg_(self):
         return Draw.ReactionToImage(
             self,

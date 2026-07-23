@@ -2,8 +2,8 @@ from rdkit.Chem.rdChemReactions import ReactionToSmarts
 from rdkit.Chem.rdmolfiles import MolFromSmiles
 from syrupy.assertion import SnapshotAssertion
 
-from gloryxr.models import MultiFAME3RModelProvider
-from gloryxr.prediction import GLORYxR
+from gloryxr import GLORYxR
+from gloryxr.models.fame3r import MultiFAME3RModelProvider
 from gloryxr.reactions import Reactor
 
 PARACETAMOL = MolFromSmiles("CC(=O)Nc1ccc(O)cc1")

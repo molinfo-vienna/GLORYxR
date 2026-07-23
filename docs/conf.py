@@ -29,6 +29,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx_copybutton",
+    "myst_nb",
 ]
 
 templates_path = ["_templates"]
@@ -62,10 +63,12 @@ html_theme_options = {
 html_static_path = ["_static"]
 html_css_files = ["fix_theme_toggle.css"]
 
+
 # -- Options for AutoDoc and Sphinx Python handling --------------------------
 
 autodoc_member_order = "bysource"
 autodoc_typehints_format = "short"
+autodoc_default_options = {"show-inheritance": True}
 python_use_unqualified_type_names = True
 
 
@@ -76,8 +79,8 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "rdkit": ("https://www.rdkit.org/docs/", None),
-    "pandas": ("https://pandas.pydata.org/docs/", None),
-    # "fame3r": ("https://example.com/todo/", None),
+    # "pandas": ("https://pandas.pydata.org/docs/", None),
+    # "fame3r": ("https://molinfo-vienna.github.io/FAME3R/master/html/", None),
 }
 
 
