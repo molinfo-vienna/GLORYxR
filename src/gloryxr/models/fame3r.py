@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Any, override
+from typing import Any, Self, override
 
 import joblib
 import numpy as np
@@ -22,16 +22,28 @@ class MultiFAME3RModelProvider(ModelProvider):
 
     """
 
-    def __init__(self, model_path: PathLike[str] | str) -> None:
-        self.models: dict[str, Any] = {}
+    def __init__(self, models: dict[str, Any]) -> None:
+        self.models: dict[str, Any] = models
         self.vectorizer = FAME3RVectorizer().fit()
+
+    @classmethod
+    def load(cls, model_path: PathLike[str] | str) -> Self:
+        """Load a list of reaction-class specific FAME3R models from a local directory.
+
+        The `.joblib` files containing the models should have their
+        corresponding reaction type as their file name.
+
+        """
 
         model_paths = list(Path(model_path).glob("*.joblib"))
         if len(model_paths) == 0:
             raise RuntimeError(f"No models could be found at '{model_path}'")
 
+        models = {}
         for model_path in model_paths:
-            self.models[model_path.stem] = joblib.load(filename=model_path)
+            models[model_path.stem] = joblib.load(filename=model_path)
+
+        return cls(models)
 
     @override
     def predict_proba(

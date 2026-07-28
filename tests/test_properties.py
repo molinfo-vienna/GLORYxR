@@ -12,7 +12,7 @@ PARACETAMOL = MolFromSmiles("CC(=O)Nc1ccc(O)cc1")
 def test_predictions_as_expected(snapshot: SnapshotAssertion):
     gloryxr = GLORYxR(
         reactor=Reactor.load_builtin(phase="1+2"),
-        models=MultiFAME3RModelProvider("models"),
+        models=MultiFAME3RModelProvider.load("models"),
     )
     reactions = gloryxr.predict_one(PARACETAMOL)
 
