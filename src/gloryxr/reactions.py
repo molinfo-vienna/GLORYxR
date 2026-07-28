@@ -44,6 +44,8 @@ class Reactor:
            phase: {"1", "2", "1+2"} Phase-subset of reactions that should be loaded
            strict_soms: Whether to perform stricter SOM tagging
         """
+        assert phase in ["1", "2", "1+2"]
+
         abstract_reactions = []
 
         with _rules_data.joinpath("gloryx_reactionrules_connect.csv").open() as f:
