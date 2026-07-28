@@ -66,15 +66,11 @@ class AweSOMModelProvider(ModelProvider):
 
         results = []
         for mol_id, rxn in enumerate(reactions):
-            results.append(
-                max(
-                    [
-                        probabilities_mapped[(mol_id, atom.GetIdx())]
-                        for atom in rxn.GetReactantTemplate(0).GetAtoms()
-                        if atom.GetAtomMapNum() != 0
-                    ],
-                    default=np.nan,
-                )
+            probabilites = (
+                probabilities_mapped[(mol_id, atom.GetIdx())]
+                for atom in rxn.GetReactantTemplate(0).GetAtoms()
+                if atom.GetAtomMapNum() != 0
             )
+            results.append(max(probabilites, default=np.nan))
 
         return np.asarray(results)
