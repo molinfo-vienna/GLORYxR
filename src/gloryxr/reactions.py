@@ -123,7 +123,9 @@ def _to_concrete_reactions(
         concrete_reaction.AddReactantTemplate(Mol(educt))
         concrete_reaction.AddProductTemplate(product)
 
-        for name, value in reaction.GetPropsAsDict(includePrivate=True).items():
+        for name, value in reaction.GetPropsAsDict(
+            includePrivate=True, autoConvertStrings=False
+        ).items():
             concrete_reaction.SetProp(name, value)
 
         reactions.append(concrete_reaction)
@@ -147,7 +149,7 @@ def _separate_reactions_for_products(
         split_reaction.AddProductTemplate(product)
 
         for name, value in combined_reaction.GetPropsAsDict(
-            includePrivate=True
+            includePrivate=True, autoConvertStrings=False
         ).items():
             split_reaction.SetProp(name, value)
 
