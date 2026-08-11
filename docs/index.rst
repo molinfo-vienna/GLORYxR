@@ -14,7 +14,6 @@
    :maxdepth: 2
    :hidden:
 
-   source/tutorials/scripts
    source/tutorials/python_api
 
 .. toctree::
