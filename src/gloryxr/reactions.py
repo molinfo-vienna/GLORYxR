@@ -11,7 +11,9 @@ from typing import Literal, Self
 
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
+from rdkit.Chem.rdDepictor import Compute2DCoords
 from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
+from rdkit.Geometry import Point2D, Point3D
 from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
@@ -27,10 +29,14 @@ class Reactor:
     """
 
     def __init__(
-        self, reactions: list[ChemicalReaction], strict_soms: bool = False
+        self,
+        reactions: list[ChemicalReaction],
+        strict_soms: bool = False,
+        pretty: bool = True,
     ) -> None:
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = reactions
+        self.pretty = pretty
 
     @classmethod
     def load_builtin(
@@ -67,7 +73,9 @@ class Reactor:
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
                 (
-                    _to_concrete_reactions(reaction=abstract_reaction, educt=mol)
+                    _to_concrete_reactions(
+                        reaction=abstract_reaction, educt=mol, pretty=self.pretty
+                    )
                     for abstract_reaction in self.abstract_reactions
                 )
             )
@@ -95,7 +103,7 @@ class Reactor:
 
 
 def _to_concrete_reactions(
-    reaction: ChemicalReaction, educt: Mol
+    reaction: ChemicalReaction, educt: Mol, pretty: bool
 ) -> list[ChemicalReaction]:
     # INFO: AddHs is very important for correct application of reactions
     products = itertools.chain.from_iterable(reaction.RunReactants([AddHs(educt)]))
@@ -121,6 +129,9 @@ def _to_concrete_reactions(
         concrete_reaction.AddReactantTemplate(Mol(educt))
         concrete_reaction.AddProductTemplate(product)
 
+        if pretty:
+            _prettify_reaction_products(concrete_reaction)
+
         for name, value in reaction.GetPropsAsDict(
             includePrivate=True, autoConvertStrings=False
         ).items():
@@ -129,6 +140,24 @@ def _to_concrete_reactions(
         reactions.append(concrete_reaction)
 
     return reactions
+
+
+def _prettify_reaction_products(rxn: ChemicalReaction):
+    def point_to_2d(p):
+        return Point2D(p.x, p.y)
+
+    product = rxn.GetProductTemplate(0)
+    try:
+        conf = product.GetConformer()
+    except ValueError:
+        return
+    coord_map = {
+        atom.GetIdx(): point_to_2d(conf.GetAtomPosition(atom.GetIdx()))
+        for atom in product.GetAtoms()
+        if atom.HasProp("react_atom_idx")
+    }
+    product.RemoveAllConformers()
+    Compute2DCoords(product, coordMap=coord_map)
 
 
 def _separate_reactions_for_products(
