@@ -14,7 +14,7 @@ from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 from rdkit.Chem.rdDepictor import Compute2DCoords
 from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
 from rdkit.Chem.RegistrationHash import GetStereoTautomerHash
-from rdkit.Geometry import Point2D, Point3D
+from rdkit.Geometry import Point2D
 from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
