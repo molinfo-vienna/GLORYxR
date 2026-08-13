@@ -43,17 +43,11 @@ def _get_strict_som_indices(educt: Mol, product: Mol) -> list[int]:
         if atom.HasProp("react_atom_idx") and atom.GetAtomicNum() != 1
     }
 
-    added_by_reaction_idx = [
-        atom.GetIdx()
-        for atom in product.GetAtoms()
-        if not atom.HasProp("react_atom_idx")
-    ]
     removed_by_reaction_idx = [
         atom.GetIdx()
         for atom in educt.GetAtoms()
         if atom.GetIdx() not in involved_idx_mappings
     ]
-
     if len(removed_by_reaction_idx) != 0:
         return [
             involved_idx_mappings[idx]
@@ -61,12 +55,32 @@ def _get_strict_som_indices(educt: Mol, product: Mol) -> list[int]:
                 educt, removed_by_reaction_idx, list(involved_idx_mappings.keys())
             )
         ]
-    elif len(added_by_reaction_idx) != 0:
+
+    added_by_reaction_idx = [
+        atom.GetIdx()
+        for atom in product.GetAtoms()
+        if not atom.HasProp("react_atom_idx")
+    ]
+    if len(added_by_reaction_idx) != 0:
         return _get_closest_idxs(
             product, added_by_reaction_idx, list(involved_idx_mappings.values())
         )
-    else:
-        return []
+
+    valence_changed_idx = [
+        atom.GetIdx()
+        for atom in product.GetAtoms()
+        if atom.HasProp("_ReactionDegreeChanged")
+        and atom.GetIdx() in involved_idx_mappings.values()
+    ]
+    if len(valence_changed_idx) != 0:
+        return valence_changed_idx
+
+    return [
+        product_id
+        for educt_id, product_id in involved_idx_mappings.items()
+        if product.GetAtomWithIdx(product_id).GetTotalNumHs(includeNeighbors=True)
+        != educt.GetAtomWithIdx(educt_id).GetTotalNumHs(includeNeighbors=True)
+    ]
 
 
 def _get_closest_idxs(
