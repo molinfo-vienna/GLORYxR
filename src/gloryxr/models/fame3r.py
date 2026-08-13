@@ -6,6 +6,8 @@ import joblib
 import numpy as np
 from fame3r.descriptors import FAME3RVectorizer
 from rdkit.Chem.rdChemReactions import ChemicalReaction
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
 
 from gloryxr.models import ModelProvider
 from gloryxr.utils import extract_smiles_for_soms
@@ -70,6 +72,73 @@ class MultiFAME3RModelProvider(ModelProvider):
                 np.array(reactive_atoms).reshape(-1, 1)
             )
             predictions = self.models[subset].predict_proba(descriptors)
+
+            results.append(predictions[:, -1].max() * priority_factor)
+
+        return np.asarray(results)
+
+
+class SingleFAME3RModelProvider(ModelProvider):
+    _reaction_classes = [
+        "Phase 1 SyGMa rules",
+        "CYP rules from GLORY (phase 1)",
+        "Other phase 2 rules",
+        "UGT rules (phase 2)",
+        "GST rules (phase 2)",
+        "NAT rules (phase 2)",
+        "SULT rules (phase 2)",
+        "MT rules (phase 2)",
+    ]
+
+    def __init__(self, model: Any) -> None:
+        self.model: Any = model
+        self.column_transformer = ColumnTransformer(
+            [
+                (
+                    "one_hot_reaction_class",
+                    OneHotEncoder(),
+                    [0],
+                ),
+                (
+                    "vectorize_atom",
+                    FAME3RVectorizer(radius=5, input="smiles"),
+                    [1],
+                ),
+            ]
+        ).fit([[x, "[C:1]"] for x in self._reaction_classes])
+
+    @classmethod
+    def load(cls, model_path: PathLike[str] | str) -> Self:
+        return cls(joblib.load(filename=model_path))
+
+    @override
+    def predict_proba(
+        self,
+        reactions: list[ChemicalReaction],
+    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        results = []
+
+        for rxn in reactions:
+            priority = rxn.GetProp("_Priority")
+            if priority == "uncommon":
+                priority_factor = 0.2
+            else:
+                priority_factor = 1.0
+            subset = rxn.GetProp("_Subset")
+
+            reactive_atoms_and_subsets = [
+                (subset, smiles)
+                for smiles in extract_smiles_for_soms(rxn.GetReactantTemplate(0))
+            ]
+            if len(reactive_atoms_and_subsets) == 0:
+                # TODO: fix this using rules
+                results.append(np.nan)
+                continue
+
+            descriptors = self.column_transformer.transform(
+                np.array(reactive_atoms_and_subsets)
+            )
+            predictions = self.model.predict_proba(descriptors)
 
             results.append(predictions[:, -1].max() * priority_factor)
 
