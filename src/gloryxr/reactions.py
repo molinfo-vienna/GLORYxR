@@ -17,6 +17,7 @@ from rdkit.Geometry import Point2D, Point3D
 from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
+from gloryxr.utils import MetabolismReaction
 
 __all__ = ["Reactor"]
 
@@ -67,7 +68,7 @@ class Reactor:
 
         return cls(abstract_reactions, strict_soms)
 
-    def react_one(self, mol: Mol) -> list[ChemicalReaction]:
+    def react_one(self, mol: Mol) -> list[MetabolismReaction]:
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
                 (
@@ -94,7 +95,7 @@ class Reactor:
 
         # Filter out products with less than 3 heavy atoms
         return [
-            rxn
+            MetabolismReaction(rxn)
             for rxn in separated_reactions
             if rxn.GetProductTemplate(0).GetNumHeavyAtoms() >= 3
         ]
