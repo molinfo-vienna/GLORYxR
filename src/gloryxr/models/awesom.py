@@ -71,6 +71,7 @@ class AweSOMModelProvider(ModelProvider):
                 for atom in rxn.GetReactantTemplate(0).GetAtoms()
                 if atom.GetAtomMapNum() != 0
             )
-            results.append(max(probabilites, default=np.nan))
+            # TODO: fix this using rules
+            results.append(max(probabilites, default=0.0))
 
         return np.asarray(results)

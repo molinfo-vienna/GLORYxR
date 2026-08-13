@@ -65,7 +65,7 @@ class MultiFAME3RModelProvider(ModelProvider):
             reactive_atoms = extract_smiles_for_soms(rxn.GetReactantTemplate(0))
             if len(reactive_atoms) == 0:
                 # TODO: fix this using rules
-                results.append(np.nan)
+                results.append(0.0)
                 continue
 
             descriptors = self.vectorizer.transform(
@@ -132,7 +132,7 @@ class SingleFAME3RModelProvider(ModelProvider):
             ]
             if len(reactive_atoms_and_subsets) == 0:
                 # TODO: fix this using rules
-                results.append(np.nan)
+                results.append(0.0)
                 continue
 
             descriptors = self.column_transformer.transform(
