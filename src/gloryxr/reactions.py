@@ -13,6 +13,7 @@ from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 from rdkit.Chem.rdDepictor import Compute2DCoords
 from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
+from rdkit.Chem.RegistrationHash import GetStereoTautomerHash
 from rdkit.Geometry import Point2D, Point3D
 from rdkit.rdBase import BlockLogs
 
@@ -111,7 +112,7 @@ def _to_concrete_reactions(
     reactions = []
 
     for product in products:
-        if (key := hash(product.ToBinary())) not in known_products:
+        if (key := GetStereoTautomerHash(product)) not in known_products:
             known_products.add(key)
         else:
             continue
