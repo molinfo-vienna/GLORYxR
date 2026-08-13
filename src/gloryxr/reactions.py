@@ -9,7 +9,6 @@ import importlib.resources
 import itertools
 from typing import Literal, Self
 
-from rdkit.Chem.inchi import MolToInchi
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
@@ -105,18 +104,17 @@ def _to_concrete_reactions(
     reactions = []
 
     for product in products:
+        if (key := hash(product.ToBinary())) not in known_products:
+            known_products.add(key)
+        else:
+            continue
+
         try:
             block = BlockLogs()
             SanitizeMol(product)
             product = RemoveHs(product)
             del block
         except Exception:
-            continue
-
-        # Check for duplicate products using InChI
-        if (inchi := MolToInchi(product)) not in known_products:
-            known_products.add(inchi)
-        else:
             continue
 
         concrete_reaction = ChemicalReaction()
