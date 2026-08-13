@@ -6,3 +6,4 @@ Metabolite prediction
 
 .. automodule:: gloryxr
    :members:
+   :ignore-module-all:

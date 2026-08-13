@@ -11,7 +11,7 @@ from gloryxr.models import ModelProvider
 from gloryxr.reactions import Reactor
 from gloryxr.utils import MetabolismReaction, mol_without_mappings
 
-__all__ = ["GLORYxR"]
+__all__ = ["GLORYxR", "Reactor", "ModelProvider"]
 
 
 class GLORYxR:
