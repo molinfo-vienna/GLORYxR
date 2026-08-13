@@ -32,11 +32,9 @@ class Reactor:
         self,
         reactions: list[ChemicalReaction],
         strict_soms: bool = False,
-        pretty: bool = True,
     ) -> None:
         self.strict_soms: bool = strict_soms
         self.abstract_reactions: list[ChemicalReaction] = reactions
-        self.pretty = pretty
 
     @classmethod
     def load_builtin(
@@ -74,7 +72,7 @@ class Reactor:
             itertools.chain.from_iterable(
                 (
                     _to_concrete_reactions(
-                        reaction=abstract_reaction, educt=mol, pretty=self.pretty
+                        reaction=abstract_reaction, educt=mol, pretty=True
                     )
                     for abstract_reaction in self.abstract_reactions
                 )
