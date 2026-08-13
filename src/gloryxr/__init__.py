@@ -55,6 +55,7 @@ class GLORYxR:
             MetabolismReaction(concrete_reaction)
             for concrete_reaction in self.reactor.react_one(mol)
         ]
+
         for reaction in predicted_reactions:
             score = self.model_provider.predict_proba([reaction])[0]
             reaction.SetDoubleProp("Score", score)
