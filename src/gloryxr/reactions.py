@@ -70,6 +70,11 @@ class Reactor:
         return cls(abstract_reactions, strict_soms)
 
     def react_one(self, mol: Mol) -> list[MetabolismReaction]:
+        """Generate metabolism reactions for a single molecule.
+
+        Args:
+            mol: Molecule to perform metabolism reactions on
+        """
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
                 (
