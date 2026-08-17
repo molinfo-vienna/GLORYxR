@@ -22,7 +22,6 @@
    :hidden:
    :glob:
 
-   source/summary
    source/modules/*
    API index <modindex>
 
