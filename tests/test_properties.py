@@ -3,7 +3,7 @@ from rdkit.Chem.rdmolfiles import MolFromSmiles
 from syrupy.assertion import SnapshotAssertion
 
 from gloryxr import GLORYxR
-from gloryxr.models.fame3r import MultiFAME3RModelProvider
+from gloryxr.models.fame3r import SingleFAME3RModelProvider
 from gloryxr.reactions import Reactor
 
 PARACETAMOL = MolFromSmiles("CC(=O)Nc1ccc(O)cc1")
@@ -12,7 +12,9 @@ PARACETAMOL = MolFromSmiles("CC(=O)Nc1ccc(O)cc1")
 def test_predictions_as_expected(snapshot: SnapshotAssertion):
     gloryxr = GLORYxR(
         reactor=Reactor.load_builtin(phase="1+2"),
-        models=MultiFAME3RModelProvider.load("models"),
+        models=SingleFAME3RModelProvider.load(
+            "docs/source/tutorials/example_model.joblib"
+        ),
     )
     reactions = gloryxr.predict_one(PARACETAMOL)
 
