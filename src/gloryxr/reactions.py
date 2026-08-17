@@ -12,7 +12,7 @@ from typing import Literal, Self
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 from rdkit.Chem.rdDepictor import Compute2DCoords
-from rdkit.Chem.rdmolops import AddHs, GetMolFrags, RemoveHs, SanitizeMol
+from rdkit.Chem.rdmolops import AddHs, CombineMols, GetMolFrags, RemoveHs, SanitizeMol
 from rdkit.Chem.RegistrationHash import GetStereoTautomerHash
 from rdkit.Geometry import Point2D
 from rdkit.rdBase import BlockLogs
@@ -36,7 +36,9 @@ class Reactor:
         strict_soms: bool = False,
     ) -> None:
         self.strict_soms: bool = strict_soms
-        self.abstract_reactions: list[ChemicalReaction] = reactions
+        self.abstract_reactions: list[ChemicalReaction] = [
+            _fixup_reaction(rxn) for rxn in reactions
+        ]
 
     @classmethod
     def load_builtin(
@@ -105,6 +107,33 @@ class Reactor:
             for rxn in separated_reactions
             if rxn.GetProductTemplate(0).GetNumHeavyAtoms() >= 3
         ]
+
+
+def _fixup_reaction(reaction: ChemicalReaction) -> ChemicalReaction:
+    fixed = ChemicalReaction()
+
+    for mol in reaction.GetReactants():
+        fixed.AddReactantTemplate(mol)
+    for mol in reaction.GetAgents():
+        fixed.AddAgentTemplate(mol)
+
+    # INFO: This ensures that products are placed in the same Mol
+    # object, which seems to be extremely important for the correct
+    # application of ring-breaking reactions. Without it, sometimes
+    # atoms are randomly deleted.
+    combined = None
+    for mol in reaction.GetProducts():
+        combined = mol if combined is None else CombineMols(combined, mol)
+    if combined is not None:
+        fixed.AddProductTemplate(combined)
+
+    for name, value in reaction.GetPropsAsDict(
+        includePrivate=True, autoConvertStrings=False
+    ).items():
+        fixed.SetProp(name, value)
+
+    fixed.Initialize()
+    return fixed
 
 
 def _to_concrete_reactions(
