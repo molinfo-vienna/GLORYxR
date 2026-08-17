@@ -11,7 +11,7 @@ from gloryxr.models import ModelProvider
 from gloryxr.reactions import Reactor
 from gloryxr.utils import MetabolismReaction, mol_without_mappings
 
-__all__ = ["GLORYxR", "Reactor", "ModelProvider"]
+__all__ = ["GLORYxR", "ModelProvider", "Reactor"]
 
 
 class GLORYxR:
@@ -39,7 +39,7 @@ class GLORYxR:
             mols: List of molecules to perform metabolism prediction for
         """
         predictions = itertools.chain.from_iterable(
-            (self.predict_one(mol) for mol in mols)
+            self.predict_one(mol) for mol in mols
         )
 
         return list(predictions)

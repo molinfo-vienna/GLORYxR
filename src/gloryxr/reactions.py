@@ -79,12 +79,10 @@ class Reactor:
         """
         concrete_reactions: list[ChemicalReaction] = list(
             itertools.chain.from_iterable(
-                (
-                    _to_concrete_reactions(
-                        reaction=abstract_reaction, educt=mol, pretty=True
-                    )
-                    for abstract_reaction in self.abstract_reactions
+                _to_concrete_reactions(
+                    reaction=abstract_reaction, educt=mol, pretty=True
                 )
+                for abstract_reaction in self.abstract_reactions
             )
         )
 

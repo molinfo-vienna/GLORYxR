@@ -7,7 +7,7 @@ from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
-__all__ = ["extract_smiles_for_soms", "mol_without_mappings", "MetabolismReaction"]
+__all__ = ["MetabolismReaction", "extract_smiles_for_soms", "mol_without_mappings"]
 
 
 def extract_smiles_for_soms(mol: Mol) -> list[str]:

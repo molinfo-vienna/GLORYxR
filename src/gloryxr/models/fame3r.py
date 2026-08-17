@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Any, Self, override
+from typing import Any, ClassVar, Self, override
 
 import joblib
 import numpy as np
@@ -29,7 +29,7 @@ class MultiFAME3RModelProvider(ModelProvider):
         self.vectorizer = FAME3RVectorizer().fit()
 
     @classmethod
-    def load(cls, model_path: PathLike[str] | str) -> Self:
+    def load(cls, models_path: PathLike[str] | str) -> Self:
         """Load a list of reaction-class specific FAME3R models from a local directory.
 
         The `.joblib` files containing the models should have their
@@ -37,9 +37,9 @@ class MultiFAME3RModelProvider(ModelProvider):
 
         """
 
-        model_paths = list(Path(model_path).glob("*.joblib"))
+        model_paths = list(Path(models_path).glob("*.joblib"))
         if len(model_paths) == 0:
-            raise RuntimeError(f"No models could be found at '{model_path}'")
+            raise RuntimeError(f"No models could be found at '{models_path}'")
 
         models = {}
         for model_path in model_paths:
@@ -79,7 +79,7 @@ class MultiFAME3RModelProvider(ModelProvider):
 
 
 class SingleFAME3RModelProvider(ModelProvider):
-    _reaction_classes = [
+    _reaction_classes: ClassVar = [
         "Phase 1 SyGMa rules",
         "CYP rules from GLORY (phase 1)",
         "Other phase 2 rules",
