@@ -9,13 +9,12 @@ import importlib.resources
 import itertools
 from typing import Literal, Self
 
-from rdkit.Chem.rdchem import Mol
+from rdkit.Chem.rdchem import Mol, MolSanitizeException
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 from rdkit.Chem.rdDepictor import Compute2DCoords
 from rdkit.Chem.rdmolops import AddHs, CombineMols, GetMolFrags, RemoveHs, SanitizeMol
 from rdkit.Chem.RegistrationHash import GetStereoTautomerHash
 from rdkit.Geometry import Point2D
-from rdkit.rdBase import BlockLogs
 
 from gloryxr.som import annotate_educt_and_product_inplace
 from gloryxr.utils import MetabolismReaction
@@ -150,11 +149,9 @@ def _to_concrete_reactions(
             continue
 
         try:
-            block = BlockLogs()
             SanitizeMol(product)
             product = RemoveHs(product)
-            del block
-        except Exception:
+        except MolSanitizeException:
             continue
 
         concrete_reaction = ChemicalReaction()
