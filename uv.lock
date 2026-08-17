@@ -775,7 +775,7 @@ wheels = [
 
 [[package]]
 name = "fame3r"
-version = "2.0.0"
+version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cdpkit" },
@@ -783,9 +783,9 @@ dependencies = [
     { name = "numpy" },
     { name = "scikit-learn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/36/55/968d67eb4e73d1d911cc79ca90650f20b64de816ebc4a8b9bd2619ce387b/fame3r-2.0.0.tar.gz", hash = "sha256:1dff085f9670d9d6d322b016286ff128bd7a55ecf0d3ce08919a48cd6b668632", size = 46356, upload-time = "2025-09-03T09:44:05.871Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/8f/73746f69296415ffb66fed889729743d73d15de7bd0ed413d4487f679b1d/fame3r-2.1.0.tar.gz", hash = "sha256:31bc793bb51e6ad1553b8424314fb084fa171d263fa5daaa312e38d799d40843", size = 47636, upload-time = "2026-08-17T17:14:10.977Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/2a/4d25e396fe75c25dd523797c0ae7a88cd588d958d42546dc9f2adafb3c08/fame3r-2.0.0-py3-none-any.whl", hash = "sha256:65db8275fc371db1c2a58d3f0da7a6e6a20458af7db6a1d9ebdd79a3791b4bc5", size = 47623, upload-time = "2025-09-03T09:44:03.096Z" },
+    { url = "https://files.pythonhosted.org/packages/58/b9/4b19ab415d64ec8b8807c7879e49f2eee35006cdb8a55efbb6a11d7d0df8/fame3r-2.1.0-py3-none-any.whl", hash = "sha256:e0c214fcfc40a98124ec552e83b957b50c03f0c14eaadccec309b123de568f4f", size = 48914, upload-time = "2026-08-17T17:14:09.663Z" },
 ]
 
 [package.optional-dependencies]
@@ -3558,17 +3558,17 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.27.1"
+version = "0.25.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "click" },
     { name = "rich" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ae/40/4a3db7990d1f62a53182aa96eaef57aeb2886a27f90a195bc66713565d31/typer-0.27.1.tar.gz", hash = "sha256:a79bef8469a79c45498e7b814ecf8d603cc7644e9acbd9e19cac0334240b18df", size = 203994, upload-time = "2026-08-03T14:41:03.438Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/51/9aed62104cea109b820bbd6c14245af756112017d309da813ef107d42e7e/typer-0.25.1.tar.gz", hash = "sha256:9616eb8853a09ffeabab1698952f33c6f29ffdbceb4eaeecf571880e8d7664cc", size = 122276, upload-time = "2026-04-30T19:32:16.964Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/89/9518bc0c3929bee36b3a4a8e3daddd6e03f92f9961c66d4983b837160543/typer-0.27.1-py3-none-any.whl", hash = "sha256:53150287edd11baeb4e4722c8e394fcdf8181c0ae89485cba8d25c778d5edd56", size = 122874, upload-time = "2026-08-03T14:41:04.391Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/f9/2b3ff4e56e5fa7debfaf9eb135d0da96f3e9a1d5b27222223c7296336e5f/typer-0.25.1-py3-none-any.whl", hash = "sha256:75caa44ed46a03fb2dab8808753ffacdbfea88495e74c85a28c5eefcf5f39c89", size = 58409, upload-time = "2026-04-30T19:32:18.271Z" },
 ]
 
 [[package]]
