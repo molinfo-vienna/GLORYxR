@@ -21,7 +21,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-awesom = ["awesom"]
+# NOTE: This will not work without a local override for the awesom dependency!
+awesom = ["awesom>=3.0.0"]
 
 [dependency-groups]
 build = ["build"]
