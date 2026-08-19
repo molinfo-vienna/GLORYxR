@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Any, ClassVar, Self, override
+from typing import Any, ClassVar, Self
 
 import joblib
 import numpy as np
@@ -8,6 +8,7 @@ from fame3r.descriptors import FAME3RVectorizer
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
+from typing_extensions import override
 
 from gloryxr.models import ModelProvider
 from gloryxr.utils import extract_smiles_for_soms
