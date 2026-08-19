@@ -1,12 +1,13 @@
 from os import PathLike
 from pathlib import Path
-from typing import Self, override
+from typing import Self
 
 import numpy as np
 from awesom.dataset import mol_to_data
 from awesom.model import SOMPredictor, predict_ensemble
 from rdkit.Chem.rdChemReactions import ChemicalReaction
 from torch_geometric.loader import DataLoader
+from typing_extensions import override
 
 from gloryxr.models import ModelProvider
 
